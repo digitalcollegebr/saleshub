@@ -12,17 +12,15 @@ services:
   web:
     build:
       context: .
-      # NEXT_PUBLIC_* precisa vir como build arg: o Next resolve essas variáveis
-      # ao compilar e grava o valor no bundle do navegador. Passá-las apenas em
-      # `environment` não teria efeito — trocar a URL da API exige rebuild.
-      args:
-        NEXT_PUBLIC_USAR_MOCKS: ${NEXT_PUBLIC_USAR_MOCKS:-true}
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
     image: saleshub:latest
     environment:
-      # Repetidas aqui porque a rota /api/saude roda no servidor e lê em execução.
-      NEXT_PUBLIC_USAR_MOCKS: ${NEXT_PUBLIC_USAR_MOCKS:-true}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+      # SEM prefixo NEXT_PUBLIC_: são lidas pelo proxy no servidor e nunca vão para
+      # o bundle. Por isso valem em EXECUÇÃO — preencher as duas e reiniciar liga os
+      # dados reais, sem reconstruir imagem. Vazias, o painel serve demonstração.
+      API_URL: ${API_URL:-}
+      SALESHUB_TOKEN: ${SALESHUB_TOKEN:-}
+      # Só desenvolvimento: sem login, o proxy nega dados reais. Ver README.
+      PERMITIR_SEM_SESSAO: ${PERMITIR_SEM_SESSAO:-}
       TZ: ${TZ:-America/Fortaleza}
       SERVICE_FQDN_WEB_3000: ${SERVICE_FQDN_WEB_3000:-}
     expose:

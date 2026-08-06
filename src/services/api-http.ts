@@ -1,10 +1,9 @@
 /**
- * Adaptador HTTP — o destino, ainda não ligado.
+ * Adaptador HTTP — o único caminho de dados do navegador.
  *
- * Existe desde já para provar que o contrato é implementável sobre REST e para que
- * ligar a API real seja trocar `NEXT_PUBLIC_USAR_MOCKS`, não escrever esta classe
- * sob pressão no dia da integração. Os caminhos são uma proposta: ajuste-os quando
- * a API estiver definida — nenhum componente muda.
+ * Aponta para `/api/dados`, a rota do próprio Next que guarda o token e decide
+ * entre a API real e a demonstração. Os caminhos abaixo espelham 1:1 os endpoints
+ * de `/saleshub/*` no coletor (`app/saleshub/router.py`).
  */
 
 import type { SalesHubApi } from "./contrato";

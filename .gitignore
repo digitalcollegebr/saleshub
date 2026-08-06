@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# ...menos o exemplo: ele é documentação, não segredo. Sem esta exceção, um clone
+# limpo não descobre que API_URL e SALESHUB_TOKEN existem — e a configuração vira
+# conhecimento oral.
+!.env.example
 
 # vercel
 .vercel

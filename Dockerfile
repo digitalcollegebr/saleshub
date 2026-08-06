@@ -12,15 +12,15 @@ RUN npm ci
 FROM node:24-alpine AS builder
 WORKDIR /app
 
-# ⚠️ Variáveis NEXT_PUBLIC_* são resolvidas em tempo de BUILD, não de execução:
-# o Next as substitui literalmente no bundle que vai para o navegador. Definir
-# NEXT_PUBLIC_API_URL só no `environment` do compose não teria efeito nenhum —
-# por isso elas entram aqui como ARG e o compose as passa em `build.args`.
-ARG NEXT_PUBLIC_USAR_MOCKS=true
-ARG NEXT_PUBLIC_API_URL=""
-ENV NEXT_PUBLIC_USAR_MOCKS=$NEXT_PUBLIC_USAR_MOCKS \
-    NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
-    NEXT_TELEMETRY_DISABLED=1
+# Nenhum build arg de configuração aqui, e isso é a decisão, não um esquecimento.
+#
+# Variáveis NEXT_PUBLIC_* seriam resolvidas em tempo de BUILD — o Next as substitui
+# literalmente no bundle do navegador —, então qualquer uma delas tornaria "trocar
+# de demonstração para dados reais" um rebuild de imagem. Tudo que configura o
+# SalesHub (API_URL, SALESHUB_TOKEN) é variável de SERVIDOR, lida em execução pelo
+# proxy em src/app/api/dados. Consequência prática: **esta imagem serve os dois
+# modos**, e ligar os dados reais é preencher dois campos e reiniciar.
+ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

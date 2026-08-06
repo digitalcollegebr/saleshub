@@ -13,8 +13,7 @@ import { usePathname } from "next/navigation";
 import { BarChart3, Filter, Megaphone, MessagesSquare, Settings, ShieldCheck } from "lucide-react";
 import { MARCA } from "@/lib/brand";
 import { cn } from "@/lib/utils";
-import { useUsuario } from "@/hooks/use-dados";
-import { ORIGEM_DOS_DADOS } from "@/services";
+import { useOrigemDosDados, useUsuario } from "@/hooks/use-dados";
 import { Badge } from "@/components/ui/badge";
 import { ROTULO_PERFIL, podeVer, type AreaDaAplicacao } from "@/types";
 
@@ -81,6 +80,7 @@ function Marca() {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const caminho = usePathname();
   const { data: usuario } = useUsuario();
+  const { data: origem } = useOrigemDosDados();
   const perfil = usuario?.perfil ?? "diretor";
 
   return (
@@ -143,8 +143,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-3">
-            {ORIGEM_DOS_DADOS === "mock" && (
-              <Badge variante="atencao" title="A aplicação está exibindo dados de demonstração">
+            {origem?.modo === "mock" && (
+              <Badge variante="atencao" title={origem.diagnostico}>
                 Dados de demonstração
               </Badge>
             )}

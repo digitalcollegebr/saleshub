@@ -7,13 +7,15 @@
  * que reiniciar não resolve.
  */
 
+import { configuracaoDoColetor } from "@/services/origem";
+
 export const dynamic = "force-dynamic";
 
 export function GET() {
   return Response.json({
     status: "ok",
     aplicacao: "saleshub",
-    origemDosDados: process.env.NEXT_PUBLIC_USAR_MOCKS !== "false" ? "mock" : "api",
+    origemDosDados: configuracaoDoColetor().modo,
     em: new Date().toISOString(),
   });
 }

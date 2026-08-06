@@ -40,6 +40,13 @@ export function BarraDeFiltros() {
     (a) => !filtros.equipeId || a.equipeId === filtros.equipeId,
   );
 
+  // Filtro sem opção não vai para a tela. A fonte real não tem unidade nem
+  // campanha (o SZ Chat não coleta), e um select com só "Todas" dentro é um
+  // controle que promete um recorte e não entrega nenhum — pior que a ausência.
+  const temUnidades = (opcoes?.unidades.length ?? 0) > 0;
+  const temEquipes = equipes.length > 0;
+  const temCampanhas = (opcoes?.campanhas.length ?? 0) > 0;
+
   if (isPending) {
     return (
       <div className="border-borda bg-superficie flex flex-wrap items-end gap-3 rounded-lg border p-3">
@@ -82,38 +89,42 @@ export function BarraDeFiltros() {
         </div>
       </fieldset>
 
-      <Select
-        rotulo="Unidade"
-        value={filtros.unidadeId ?? ""}
-        onChange={(e) => {
-          definir("unidade", e.target.value || undefined);
-          definir("equipe", undefined);
-          definir("atendente", undefined);
-        }}
-      >
-        <option value="">Todas</option>
-        {opcoes?.unidades.map((u) => (
-          <option key={u.id} value={u.id}>
-            {u.nome}
-          </option>
-        ))}
-      </Select>
+      {temUnidades && (
+        <Select
+          rotulo="Unidade"
+          value={filtros.unidadeId ?? ""}
+          onChange={(e) => {
+            definir("unidade", e.target.value || undefined);
+            definir("equipe", undefined);
+            definir("atendente", undefined);
+          }}
+        >
+          <option value="">Todas</option>
+          {opcoes?.unidades.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.nome}
+            </option>
+          ))}
+        </Select>
+      )}
 
-      <Select
-        rotulo="Equipe"
-        value={filtros.equipeId ?? ""}
-        onChange={(e) => {
-          definir("equipe", e.target.value || undefined);
-          definir("atendente", undefined);
-        }}
-      >
-        <option value="">Todas</option>
-        {equipes.map((e) => (
-          <option key={e.id} value={e.id}>
-            {e.nome}
-          </option>
-        ))}
-      </Select>
+      {temEquipes && (
+        <Select
+          rotulo="Equipe"
+          value={filtros.equipeId ?? ""}
+          onChange={(e) => {
+            definir("equipe", e.target.value || undefined);
+            definir("atendente", undefined);
+          }}
+        >
+          <option value="">Todas</option>
+          {equipes.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.nome}
+            </option>
+          ))}
+        </Select>
+      )}
 
       <Select
         rotulo="Atendente"
@@ -128,18 +139,20 @@ export function BarraDeFiltros() {
         ))}
       </Select>
 
-      <Select
-        rotulo="Campanha"
-        value={filtros.campanhaId ?? ""}
-        onChange={(e) => definir("campanha", e.target.value || undefined)}
-      >
-        <option value="">Todas</option>
-        {opcoes?.campanhas.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.nome}
-          </option>
-        ))}
-      </Select>
+      {temCampanhas && (
+        <Select
+          rotulo="Campanha"
+          value={filtros.campanhaId ?? ""}
+          onChange={(e) => definir("campanha", e.target.value || undefined)}
+        >
+          <option value="">Todas</option>
+          {opcoes?.campanhas.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.nome}
+            </option>
+          ))}
+        </Select>
+      )}
 
       <Select
         rotulo="Canal"

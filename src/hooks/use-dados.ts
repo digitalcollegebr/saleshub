@@ -12,6 +12,7 @@ import type { FiltrosDoPainel } from "@/types";
 /** Filtros fazem parte da chave: recorte diferente é entrada de cache diferente. */
 const chave = {
   usuario: ["usuario"] as const,
+  origem: ["origem-dos-dados"] as const,
   opcoes: ["opcoes-de-filtro"] as const,
   painel: (f: FiltrosDoPainel) => ["painel-do-funil", f] as const,
   atencao: (f: FiltrosDoPainel) => ["conversas-com-atencao", f] as const,
@@ -20,6 +21,29 @@ const chave = {
 
 export function useUsuario() {
   return useQuery({ queryKey: chave.usuario, queryFn: () => api.obterUsuarioAtual() });
+}
+
+/**
+ * Demonstração ou dados reais — pergunta ao servidor, que é quem sabe.
+ *
+ * Antes isto vinha de `NEXT_PUBLIC_USAR_MOCKS`, gravada no bundle em tempo de
+ * build. O selo mentia sempre que a imagem tivesse sido construída com um valor e
+ * o ambiente configurado com outro — e selo errado ninguém percebe olhando.
+ *
+ * Enquanto a resposta não chega, o modo fica indefinido e o selo não aparece:
+ * melhor a ausência por um instante do que "demonstração" piscando sobre dado real.
+ */
+export function useOrigemDosDados() {
+  return useQuery({
+    queryKey: chave.origem,
+    queryFn: async (): Promise<{ modo: "api" | "mock"; diagnostico: string }> => {
+      const resposta = await fetch("/api/dados/estado", {
+        headers: { Accept: "application/json" },
+      });
+      return resposta.json();
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 }
 
 export function useOpcoesDeFiltro() {

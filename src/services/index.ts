@@ -1,31 +1,33 @@
 /**
- * Ponto único de escolha entre mock e API real.
+ * Ponto único de acesso a dados.
  *
- * A aplicação inteira importa `api` daqui. Nenhum componente sabe qual adaptador
- * está atrás — é o que torna a substituição um ajuste de ambiente.
+ * A aplicação inteira importa `api` daqui e fala com `SalesHubApi` — nenhum
+ * componente sabe o que está atrás, e é isso que permitiu trocar a origem dos
+ * dados sem tocar em uma linha de tela.
  */
 
 import { ApiHttp } from "./api-http";
 import type { SalesHubApi } from "./contrato";
-import { ApiMock } from "./mock/api-mock";
 
-const usarMocks = process.env.NEXT_PUBLIC_USAR_MOCKS !== "false";
-const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "";
+/**
+ * O navegador fala com a **própria origem**, sempre.
+ *
+ * Não há mais escolha de adaptador aqui — e é essa a mudança que torna a ligação
+ * com os dados reais uma configuração, não um rebuild. Quem decide entre
+ * demonstração e API real é o servidor, em `/api/dados` (`src/app/api/dados`), que
+ * guarda o token e conhece `API_URL`. O bundle que vai para o navegador é
+ * **idêntico nos dois modos**.
+ *
+ * Apontar o navegador direto para o coletor exigiria o token no bundle — isto é,
+ * um token público. Por isso a URL do coletor é `API_URL`, variável de **servidor**,
+ * e nunca uma `NEXT_PUBLIC_*`.
+ *
+ * Para saber qual modo está valendo (o selo "Dados de demonstração"), pergunte ao
+ * servidor: `useOrigemDosDados()` em `src/hooks/use-dados.ts`.
+ */
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || "/api/dados";
 
-function escolherAdaptador(): SalesHubApi {
-  if (usarMocks) return new ApiMock();
-  if (!baseUrl) {
-    // Falhar aqui, no boot, é melhor que falhar em cada tela: sem URL, a
-    // aplicação não tem como funcionar e o erro precisa dizer exatamente isso.
-    throw new Error(
-      "NEXT_PUBLIC_API_URL não configurada. Defina a URL da API ou mantenha NEXT_PUBLIC_USAR_MOCKS=true.",
-    );
-  }
-  return new ApiHttp(baseUrl);
-}
-
-export const api: SalesHubApi = escolherAdaptador();
-export const ORIGEM_DOS_DADOS: "mock" | "api" = usarMocks ? "mock" : "api";
+export const api: SalesHubApi = new ApiHttp(baseUrl);
 
 export type { SalesHubApi } from "./contrato";
 export { ErroDaApi } from "./erros";
