@@ -1,0 +1,30 @@
+# Roda igual na sua máquina e no Coolify.
+#
+# Coolify: aponte para este arquivo e defina as variáveis na UI. O domínio sai de
+# SERVICE_FQDN_WEB_3000 — o Coolify gera as labels do Traefik e o certificado.
+#
+# Nenhuma porta publicada aqui, de propósito: em produção quem alcança o container
+# é o Traefik, pela rede interna. A porta local vive em docker-compose.override.yml,
+# que o compose carrega sozinho na sua máquina e o Coolify ignora (ele passa
+# -f docker-compose.yml explicitamente).
+
+services:
+  web:
+    build:
+      context: .
+      # NEXT_PUBLIC_* precisa vir como build arg: o Next resolve essas variáveis
+      # ao compilar e grava o valor no bundle do navegador. Passá-las apenas em
+      # `environment` não teria efeito — trocar a URL da API exige rebuild.
+      args:
+        NEXT_PUBLIC_USAR_MOCKS: ${NEXT_PUBLIC_USAR_MOCKS:-true}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+    image: saleshub:latest
+    environment:
+      # Repetidas aqui porque a rota /api/saude roda no servidor e lê em execução.
+      NEXT_PUBLIC_USAR_MOCKS: ${NEXT_PUBLIC_USAR_MOCKS:-true}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+      TZ: ${TZ:-America/Fortaleza}
+      SERVICE_FQDN_WEB_3000: ${SERVICE_FQDN_WEB_3000:-}
+    expose:
+      - "3000"
+    restart: unless-stopped

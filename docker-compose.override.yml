@@ -1,0 +1,10 @@
+# Só para desenvolvimento local.
+#
+# O `docker compose` carrega este arquivo automaticamente quando você não passa
+# `-f`. O Coolify passa `-f docker-compose.yml`, então ele NÃO lê este override —
+# em produção nenhuma porta é publicada no host.
+
+services:
+  web:
+    ports:
+      - "127.0.0.1:3000:3000"

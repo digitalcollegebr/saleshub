@@ -43,6 +43,43 @@ de funil realista. O selo "Dados de demonstração" no topo deixa isso explícit
 | `npm run lint` | ESLint |
 | `npm run format` | Prettier |
 
+### Com Docker
+
+```bash
+docker compose up -d --build     # http://127.0.0.1:3000
+docker compose logs -f web
+docker compose down
+```
+
+A imagem usa `output: "standalone"` do Next e roda como usuário sem privilégio.
+O healthcheck bate em `/api/saude`, que responde sem tocar em dependência externa
+— ele diz "este processo está servindo", não "a API de analytics está no ar".
+Misturar as duas coisas faria o orquestrador reiniciar o frontend por um problema
+que reiniciar não resolve.
+
+> ⚠️ **Variáveis `NEXT_PUBLIC_*` são resolvidas no build, não na execução.** O Next
+> substitui o valor literalmente no bundle que vai para o navegador. Trocar
+> `NEXT_PUBLIC_API_URL` exige **rebuild da imagem** — por isso elas entram como
+> `build.args` no compose, não apenas em `environment`. É a pegadinha mais comum
+> ao containerizar Next.js.
+
+```bash
+NEXT_PUBLIC_USAR_MOCKS=false \
+NEXT_PUBLIC_API_URL=https://api.saleshub.digitalcollege.com.br \
+docker compose up -d --build
+```
+
+### Deploy no Coolify
+
+Mesmo padrão do `analisa-vendas`: aponte para o `docker-compose.yml` da raiz e
+defina o domínio em **Domains for web** — a variável mágica
+`SERVICE_FQDN_WEB_3000` já está no compose, e o Coolify cria as labels do Traefik
+e emite o certificado. Nenhuma porta é publicada no host em produção; as portas
+locais vivem em `docker-compose.override.yml`, que o Coolify ignora.
+
+Defina também `NEXT_PUBLIC_USAR_MOCKS` e `NEXT_PUBLIC_API_URL` em *Environment
+Variables* — o Coolify as repassa como build args.
+
 ## Configuração
 
 ```bash

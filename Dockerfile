@@ -1,0 +1,56 @@
+# Build em três estágios: dependências, compilação e execução.
+#
+# Separar `deps` da compilação faz o cache do Docker trabalhar a favor: mexer em
+# código não reinstala node_modules, que é o passo lento.
+
+FROM node:24-alpine AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+
+FROM node:24-alpine AS builder
+WORKDIR /app
+
+# ⚠️ Variáveis NEXT_PUBLIC_* são resolvidas em tempo de BUILD, não de execução:
+# o Next as substitui literalmente no bundle que vai para o navegador. Definir
+# NEXT_PUBLIC_API_URL só no `environment` do compose não teria efeito nenhum —
+# por isso elas entram aqui como ARG e o compose as passa em `build.args`.
+ARG NEXT_PUBLIC_USAR_MOCKS=true
+ARG NEXT_PUBLIC_API_URL=""
+ENV NEXT_PUBLIC_USAR_MOCKS=$NEXT_PUBLIC_USAR_MOCKS \
+    NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_TELEMETRY_DISABLED=1
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+
+FROM node:24-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0 \
+    TZ=America/Fortaleza
+
+# tzdata: sem ele a variável TZ não resolve e o log sai em UTC.
+# wget já vem no busybox do Alpine e serve ao healthcheck — não precisa de curl.
+RUN apk add --no-cache tzdata \
+    && addgroup -g 1001 -S nodejs \
+    && adduser -u 1001 -S nextjs -G nodejs
+
+# O standalone traz o servidor e só as dependências que ele de fato usa.
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+USER nextjs
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://127.0.0.1:3000/api/saude || exit 1
+
+CMD ["node", "server.js"]
