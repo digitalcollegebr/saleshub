@@ -260,18 +260,52 @@ ficam **fora da progressão**, num bloco separado. Somá-las ao funil produziria
 
 ---
 
+## Desenvolvimento contra o coletor real
+
+Sem configuração nenhuma, `npm run dev` já sobe o painel inteiro sobre dados de
+demonstração — é um modo de desenvolvimento válido e não exige o coletor no ar.
+
+Para trabalhar contra o [coletor](https://github.com/digitalcollegebrasil/analisa-vendas)
+rodando na mesma máquina:
+
+```bash
+# no clone do coletor
+make up && make seed                                   # 60 conversas classificadas
+echo "SALESHUB_TOKEN=$(openssl rand -hex 32)" >> .env
+docker compose up -d --force-recreate api
+
+# aqui
+cat > .env.local <<EOF
+API_URL=http://127.0.0.1:8000/saleshub
+SALESHUB_TOKEN=<o mesmo token>
+PERMITIR_SEM_SESSAO=true
+EOF
+npm run dev
+```
+
+`http://localhost:3000/api/dados/estado` responde se o coletor foi alcançado e, se
+não foi, por quê. Trocar entre os dois modos é editar o `.env.local` e reiniciar o
+servidor — nunca rebuild.
+
+> As duas metades do contrato vivem em repositórios diferentes e **nada verifica se
+> continuam de acordo**. Ao mexer no formato de qualquer resposta, rode os dois
+> juntos e olhe a tela: foi assim que apareceram um ranking duplicando atendente e
+> um percentual em escala de fração exibido como "1%". Ver `DECISOES.md`, seção 13.
+
+---
+
 ## Evoluindo
 
 A navegação já lista as áreas seguintes (marcadas "em breve") e o controle de
 acesso por perfil já funciona (`podeVer()` em `src/types/usuario.ts`).
 
-| Próximo passo               | Onde encostar                                                                          |
-| --------------------------- | -------------------------------------------------------------------------------------- |
-| Tela de detalhe da conversa | `app/conversas/[id]` — o tipo `ConversaDetalhada` e `obterConversa()` já existem       |
-| Visão de marketing          | novo `app/marketing`, agregando por `campanhaId`                                       |
-| Autenticação real           | trocar `obterUsuarioAtual()` por sessão; `AppShell` e `podeVer()` já consomem o perfil |
-| Configuração das etapas     | as etapas já vêm da API; falta a tela de edição                                        |
-| Exportação                  | adicionar método ao contrato e implementar nos dois adaptadores                        |
+| Próximo passo               | Onde encostar                                                                                                                       |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Tela de detalhe da conversa | `app/conversas/[id]` — o tipo `ConversaDetalhada` e `obterConversa()` já existem                                                    |
+| Visão de marketing          | novo `app/marketing`, agregando por `campanhaId`                                                                                    |
+| Autenticação real           | `autorizado()` em `src/app/api/dados/[...caminho]/route.ts` e a rota `/api/dados/usuarios/eu` — dois pontos, nenhum componente muda |
+| Configuração das etapas     | as etapas já vêm da API; falta a tela de edição                                                                                     |
+| Exportação                  | adicionar método ao contrato e implementar nos dois adaptadores                                                                     |
 
 Não implementado de propósito: integração com CRM/ERP. Quando existir, os campos
 `requer_confirmacao_externa` passam a ter uma fonte — e só então indicadores

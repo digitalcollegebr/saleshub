@@ -25,9 +25,7 @@ import type { SalesHubApi } from "./contrato";
  * Para saber qual modo está valendo (o selo "Dados de demonstração"), pergunte ao
  * servidor: `useOrigemDosDados()` em `src/hooks/use-dados.ts`.
  */
-const baseUrl = process.env.NEXT_PUBLIC_API_URL || "/api/dados";
-
-export const api: SalesHubApi = new ApiHttp(baseUrl);
+export const api: SalesHubApi = new ApiHttp("/api/dados");
 
 export type { SalesHubApi } from "./contrato";
 export { ErroDaApi } from "./erros";
