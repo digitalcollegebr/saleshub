@@ -84,6 +84,20 @@ function media(valores: readonly number[]): number | null {
   return validos.reduce((s, v) => s + v, 0) / validos.length;
 }
 
+/**
+ * Mediana de verdade — a API usa `percentile_cont(0.5)`.
+ *
+ * O indicador de primeira resposta sempre se chamou "Mediana da 1ª resposta" e o
+ * mock calculava a **média**. Num tempo de resposta, a diferença não é sutil: um
+ * atendimento esquecido por dois dias desloca a média e não mexe na mediana.
+ */
+function mediana(valores: readonly number[]): number | null {
+  const ordenados = valores.filter((v) => Number.isFinite(v)).sort((a, b) => a - b);
+  if (!ordenados.length) return null;
+  const meio = Math.floor(ordenados.length / 2);
+  return ordenados.length % 2 ? ordenados[meio] : (ordenados[meio - 1] + ordenados[meio]) / 2;
+}
+
 function resumir(c: ConversaGerada): ConversaResumida {
   return {
     id: c.id,
@@ -103,52 +117,62 @@ function resumir(c: ConversaGerada): ConversaResumida {
   };
 }
 
+/**
+ * Os MESMOS sete indicadores que a API real devolve.
+ *
+ * Chave, rótulo, formato, classe e explicação são cópia fiel de
+ * `app/saleshub/consultas.py::painel_do_funil` no coletor. Isso não é preciosismo:
+ * o modo de demonstração e o modo real precisam ser **o mesmo produto**, senão
+ * ligar os dados reais troca a tela por baixo de quem já se acostumou com ela.
+ *
+ * A primeira versão daqui tinha oito indicadores próprios (`total_conversas`,
+ * `leads_atendidos`, `abandono`…) e só UM deles existia na API. Ninguém teria
+ * percebido antes de virar a chave em produção.
+ *
+ * Ao mudar um indicador, mude nos dois lugares — ou o painel vira dois produtos
+ * de novo.
+ */
 function montarIndicadores(conversas: ConversaGerada[]): Indicador[] {
   const total = conversas.length;
   const comResposta = conversas.filter((c) => c.metricas.houveRespostaDoAtendente);
   const semResposta = total - comResposta.length;
-  const comProximoPasso = conversas.filter((c) => c.analise.proximoPasso.valor !== null).length;
-  const comIndicio = conversas.filter((c) => c.analise.indicioDeConversao.valor).length;
-  const comObjecao = conversas.filter((c) => c.analise.objecoes.valor.length > 0).length;
-  const abandonadas = conversas.filter(
-    (c) => c.analise.etapaDoFunil.valor === "sem_resposta",
-  ).length;
 
-  const pct = (n: number) => (total ? (n / total) * 100 : 0);
+  // Próximo passo combinado e ainda EM ABERTO — a API filtra por `cumprido = false`.
+  const proximosPassos = conversas.filter((c) => {
+    const passo = c.analise.proximoPasso.valor;
+    return passo !== null && !passo.cumprido;
+  }).length;
+
+  const comIntencao = conversas.filter((c) =>
+    ["declarada", "provavel"].includes(c.analise.intencaoDeCompra.valor),
+  ).length;
+  const indicios = conversas.filter((c) => c.analise.indicioDeConversao.valor).length;
+  const qualidade = media(conversas.map((c) => c.analise.qualidade.valor.notaGeral)) ?? 0;
 
   return [
     {
-      chave: "total_conversas",
+      chave: "conversas",
       rotulo: "Conversas no período",
       valor: total,
       formato: "inteiro",
       classe: "medida",
-      explicacao:
-        "Contagem de conversas iniciadas no período. Medida diretamente nas mensagens — não depende de análise.",
+      explicacao: "Atendimentos com pelo menos uma mensagem, contados pela data de início.",
     },
     {
-      chave: "leads_atendidos",
-      rotulo: "Leads atendidos",
-      valor: comResposta.length,
-      formato: "inteiro",
-      classe: "medida",
-      explicacao:
-        "Conversas em que houve ao menos uma resposta do time. É o volume que a operação realmente tocou.",
-      filtroDeOrigem: {},
-    },
-    {
-      chave: "tempo_primeira_resposta",
-      rotulo: "Tempo até 1ª resposta",
-      valor:
-        media(
+      chave: "primeira_resposta",
+      rotulo: "Mediana da 1ª resposta",
+      valor: Math.round(
+        mediana(
           comResposta
             .map((c) => c.metricas.tempoAtePrimeiraRespostaSegundos)
             .filter((v): v is number => v !== null),
         ) ?? 0,
+      ),
       formato: "duracao_segundos",
       classe: "medida",
       explicacao:
-        "Mediana do intervalo entre a primeira mensagem do lead e a primeira resposta do atendente.",
+        "Tempo entre a primeira mensagem e a primeira resposta do time. Mediana, não média: " +
+        "um caso extremo não desloca o número.",
     },
     {
       chave: "sem_resposta",
@@ -156,51 +180,46 @@ function montarIndicadores(conversas: ConversaGerada[]): Indicador[] {
       valor: semResposta,
       formato: "inteiro",
       classe: "medida",
-      explicacao:
-        "Conversas em que o lead escreveu e ninguém respondeu. É a métrica mais acionável do painel.",
-      filtroDeOrigem: { etapaDoFunil: "nova_conversa" },
+      explicacao: "Conversas em que o time não enviou nenhuma mensagem.",
+      filtroDeOrigem: { motivo: "sem_resposta_do_atendente" },
     },
     {
-      chave: "com_proximo_passo",
-      rotulo: "Com próximo passo definido",
-      valor: comProximoPasso,
+      chave: "com_intencao",
+      rotulo: "Com intenção de compra",
+      valor: comIntencao,
       formato: "inteiro",
       classe: "inferida",
-      confiancaMedia: "alta",
       explicacao:
-        "Conversas em que a análise identificou um compromisso combinado (retorno, visita, envio de link).",
-      filtroDeOrigem: { etapaDoFunil: "proximo_passo" },
+        "Leitura da IA: o cliente declarou ou demonstrou querer fechar. " +
+        "Não é matrícula nem proposta registrada.",
     },
     {
-      chave: "indicio_conversao",
-      rotulo: "Com indício de conversão",
-      valor: comIndicio,
+      chave: "proximos_passos",
+      rotulo: "Próximos passos em aberto",
+      valor: proximosPassos,
       formato: "inteiro",
       classe: "inferida",
-      confiancaMedia: "media",
-      explicacao:
-        "Conversas em que o lead afirmou ter concluído. NÃO é matrícula confirmada — depende do sistema de matrículas.",
-      filtroDeOrigem: { etapaDoFunil: "indicio_de_conversao" },
+      explicacao: "Combinados na conversa que ainda não aparecem como cumpridos.",
     },
     {
-      chave: "com_objecao",
-      rotulo: "Com objeção registrada",
-      valor: comObjecao,
+      chave: "indicios",
+      rotulo: "Indícios de conversão",
+      valor: indicios,
       formato: "inteiro",
       classe: "inferida",
-      confiancaMedia: "alta",
-      explicacao: "Conversas em que a análise identificou ao menos uma resistência do lead.",
+      explicacao:
+        "O cliente AFIRMOU ter fechado. Não é matrícula confirmada: só o sistema de " +
+        "matrículas confirma, e ele não é lido aqui.",
     },
     {
-      chave: "abandono",
-      rotulo: "Lead parou de responder",
-      valor: pct(abandonadas),
-      formato: "percentual",
+      chave: "qualidade",
+      rotulo: "Qualidade média do atendimento",
+      valor: Math.round(qualidade * 10) / 10,
+      formato: "decimal",
       classe: "inferida",
-      confiancaMedia: "media",
       explicacao:
-        "Percentual de conversas em que o time respondeu e o lead não voltou. Sinaliza abordagem ou timing.",
-      filtroDeOrigem: { etapaDoFunil: "sem_resposta" },
+        "Leitura da IA sobre o texto da conversa (0 a 100). Não é avaliação de pessoa " +
+        "nem substitui a avaliação formal.",
     },
   ];
 }

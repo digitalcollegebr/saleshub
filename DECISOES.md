@@ -54,8 +54,8 @@ nunca ultrapassa 100%. Resultado real: 424 → 389 → 345 → 278 → 209 → 1
 
 **Descartado.** O gráfico de funil clássico (trapézios empilhados).
 
-**Por quê.** Três razões concretas: (a) as etapas terminais — *sem resposta*, *sem
-interesse* — não pertencem à progressão, e um funil desenhado as empurraria para o
+**Por quê.** Três razões concretas: (a) as etapas terminais — _sem resposta_, _sem
+interesse_ — não pertencem à progressão, e um funil desenhado as empurraria para o
 fundo como se fossem estágio final, produzindo leitura de "taxa de conversão"
 falsa; (b) a taxa de avanço precisa aparecer alinhada entre etapas vizinhas; (c)
 são 14 etapas, densidade em que o trapézio vira faixa ilegível.
@@ -82,7 +82,7 @@ toda a base e torna a remoção dos mocks uma caça a condicionais.
 
 ---
 
-## 5. Mock determinístico com agregação real
+## 5. Mock determinístico com agregação real, espelhando a API
 
 O gerador usa PRNG com semente fixa: o painel é idêntico em toda carga e entre
 máquinas. Dado que muda a cada F5 impede comparar telas, discutir um número
@@ -92,6 +92,18 @@ O `ApiMock` **agrega de verdade** — filtra, agrupa, calcula acumulado — em v
 devolver constantes. É assim que os estados difíceis aparecem antes da API existir:
 filtro que zera o resultado, etapa vazia no meio do funil, atendente sem conversa.
 Foi também o que revelou a decisão nº 2.
+
+**Acrescentado depois, quando a API real chegou.** O mock emitia oito indicadores
+próprios (`total_conversas`, `leads_atendidos`, `abandono`…) e a API real emite
+sete — **apenas um nome coincidia**. Ou seja: o painel de demonstração e o painel
+real eram produtos diferentes, e ligar os dados reais trocaria a tela por baixo de
+quem já havia se acostumado com ela. Ninguém teria percebido antes de virar a chave
+em produção.
+
+Hoje o mock reproduz chave, rótulo, formato, classe e explicação da API
+(`app/saleshub/consultas.py` no coletor); só os valores são fictícios. É o que dá
+sentido à demonstração: se funciona ali, funciona igual com dado real. Ao mudar um
+indicador, mude nos dois — está escrito nos dois arquivos.
 
 ---
 
@@ -167,3 +179,47 @@ indicadores financeiros podem aparecer.
 Onde a leitura natural do gestor tenderia para lá (o funil termina em "indício de
 conversão"), há um aviso fixo — **antes** do número, não em rodapé — explicando o
 que falta para transformar aquilo em fato.
+
+---
+
+## 13. Dois projetos, dois deploys — costurados por HTTP
+
+**Problema.** O SalesHub e o coletor (`analisa-vendas`) formam um produto só para
+quem usa. A pergunta natural é se deveriam ser um repositório e um
+`docker-compose` só — um deploy, uma fonte de verdade do contrato, tráfego
+interno sem sair para a internet.
+
+**Escolha.** Separados, costurados por HTTP através de um proxy no servidor do
+Next (`src/app/api/dados`).
+
+Os dois têm ciclos de vida diferentes, e é isso que decide. O coletor é
+infraestrutura: recebe webhook 24/7, roda poller, normaliza, classifica. O painel
+é produto: muda toda semana, tem autenticação pela frente, vai iterar muito.
+Unificados, um ajuste de gráfico recria `migrate`, `sync` e `enrich` — a parte
+volátil passa a ditar o ritmo da parte que precisa de estabilidade.
+
+Pesa também o servidor: os dois rodam no mesmo VPS, que também hospeda o Coolify,
+o Postgres e o Metabase. Esse VPS **já derrubou um deploy** por concorrência de
+build (cinco builds paralelos disparados por um anchor YAML). Somar o build do
+Next ao build da imagem Python no mesmo `docker compose build` aumenta exatamente
+a probabilidade da falha que já aconteceu.
+
+**Descartado.** O monorepo. O argumento mais forte a favor dele era eliminar a
+divergência de contrato entre Python e TypeScript — e ele não faz isso: coloca as
+duas cópias na mesma pasta e entrega _visibilidade_, não garantia. A prova está
+neste repositório: os dois lados foram escritos pela mesma pessoa, lendo os tipos
+do outro, e ainda assim divergiram em duas coisas que só apareceram ao subir os
+dois juntos (ranking duplicando atendente; percentual em escala de fração, que a
+tela exibia como "1%" onde eram 95%).
+
+O único ganho real da unificação — tráfego interno, sem hairpin pela internet —
+se obtém com uma rede externa compartilhada nos dois `docker-compose`, sem fundir
+repositório nenhum.
+
+**Reavaliar se:** o frontend passar a precisar do banco (aí dois donos escrevem no
+mesmo schema), ou se os dois passarem a mudar sempre juntos por meses seguidos.
+
+**Custo aceito.** A divergência de contrato continua possível e não é pega por
+tipo: Python e TypeScript não se falam. A mitigação é o alinhamento explícito do
+mock com a API real (decisão 5) e a rota `/api/dados/estado`, que diz se o coletor
+respondeu e por que não.
