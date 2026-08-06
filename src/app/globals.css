@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+/**
+ * Tokens da interface.
+ *
+ * Os valores de marca vivem em `src/lib/brand.ts`; aqui eles viram variáveis CSS
+ * para que nenhum componente escreva cor literal. Trocar a identidade é editar
+ * aquele arquivo e estas linhas.
+ */
+:root {
+  --cor-fundo: #f6f7f9;
+  --cor-fundo-sutil: #eef1f5;
+  --cor-superficie: #ffffff;
+  --cor-borda: #e2e6ec;
+  --cor-texto: #101828;
+  --cor-texto-fraco: #5b6879;
+  --cor-marca: #1d4ed8;
+  --cor-marca-suave: #eff4ff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cor-fundo: #0b1117;
+    --cor-fundo-sutil: #151d27;
+    --cor-superficie: #111823;
+    --cor-borda: #212c3a;
+    --cor-texto: #e7edf4;
+    --cor-texto-fraco: #8fa0b3;
+    --cor-marca: #6a9bff;
+    --cor-marca-suave: #16223a;
+  }
+}
+
+@theme inline {
+  --color-fundo: var(--cor-fundo);
+  --color-fundo-sutil: var(--cor-fundo-sutil);
+  --color-superficie: var(--cor-superficie);
+  --color-borda: var(--cor-borda);
+  --color-texto: var(--cor-texto);
+  --color-texto-fraco: var(--cor-texto-fraco);
+  --color-marca: var(--cor-marca);
+  --color-marca-suave: var(--cor-marca-suave);
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-feature-settings: "cv02", "cv03", "cv04";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Foco visível em tudo que recebe teclado — requisito de acessibilidade, não estilo. */
+:focus-visible {
+  outline: 2px solid var(--cor-marca);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
