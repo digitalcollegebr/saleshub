@@ -80,6 +80,23 @@ locais vivem em `docker-compose.override.yml`, que o Coolify ignora.
 Defina também `NEXT_PUBLIC_USAR_MOCKS` e `NEXT_PUBLIC_API_URL` em *Environment
 Variables* — o Coolify as repassa como build args.
 
+> 🔒 **Não ligue a API real antes da autenticação existir.**
+>
+> A aplicação ainda não tem login: quem abrir a URL vê o painel. Com
+> `NEXT_PUBLIC_USAR_MOCKS=true` isso é inofensivo — são dados de demonstração. No
+> instante em que apontar para a API real, um domínio público sem autenticação
+> expõe conversas de clientes reais na internet.
+>
+> A ordem correta é: autenticação → API real. Nunca o contrário. A arquitetura já
+> está preparada (`obterUsuarioAtual()`, `podeVer()`, perfis) — falta plugar um
+> provedor de identidade.
+
+O que já está endurecido para o domínio público: `X-Frame-Options: DENY` e
+`frame-ancestors 'none'` (clickjacking), `nosniff`, `Referrer-Policy`,
+`Permissions-Policy` sem câmera/microfone/localização, `poweredByHeader`
+desligado, e `robots.txt` + meta tag bloqueando indexação — vale desde já, porque
+URL indexada circula e sair do índice depois dá mais trabalho que nunca entrar.
+
 ## Configuração
 
 ```bash

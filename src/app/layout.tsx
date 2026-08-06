@@ -7,6 +7,8 @@ import { MARCA } from "@/lib/brand";
 export const metadata: Metadata = {
   title: `${MARCA.produto} · ${MARCA.organizacao}`,
   description: `${MARCA.descricao}. ${MARCA.assinatura}.`,
+  // Reforça o robots.txt no próprio HTML — alguns rastreadores só leem a meta tag.
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
