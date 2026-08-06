@@ -1,0 +1,10 @@
+Mantém `public/` no repositório.
+
+O Git não versiona diretório vazio, e o Dockerfile faz `COPY /app/public ./public`.
+Sem este arquivo, o build passa na máquina de quem já tinha a pasta e falha em todo
+clone limpo — foi exatamente o que derrubou o primeiro deploy no Coolify:
+
+    failed to compute cache key: "/app/public": not found
+
+Assets estáticos (logo, og-image, fontes) entram aqui. O favicon do App Router
+fica em `src/app/favicon.ico`, não neste diretório.
