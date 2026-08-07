@@ -15,15 +15,16 @@ const PERIODOS = [
 ] as const;
 
 export function BarraDeFiltros() {
-  const { filtros, definir, limpar, quantidadeAtiva } = useFiltros();
+  const { filtros, definir, definirVarios, limpar, quantidadeAtiva } = useFiltros();
   const { data: opcoes, isPending } = useOpcoesDeFiltro();
 
   function aplicarPeriodo(dias: number) {
     const fim = new Date();
     const inicio = new Date(fim.getTime() - dias * 86400000);
     inicio.setHours(0, 0, 0, 0);
-    definir("de", inicio.toISOString());
-    definir("ate", fim.toISOString());
+    // Uma escrita só: `de` e `ate` formam um recorte, e gravá-los em duas
+    // chamadas fazia a segunda apagar a primeira.
+    definirVarios({ de: inicio.toISOString(), ate: fim.toISOString() });
   }
 
   const diasAtuais = Math.round(
@@ -97,11 +98,15 @@ export function BarraDeFiltros() {
         <Select
           rotulo="Unidade"
           value={filtros.unidadeId ?? ""}
-          onChange={(e) => {
-            definir("unidade", e.target.value || undefined);
-            definir("equipe", undefined);
-            definir("atendente", undefined);
-          }}
+          onChange={(e) =>
+            // Trocar de unidade invalida equipe e atendente; as três mudanças
+            // são um recorte só e precisam de uma escrita só.
+            definirVarios({
+              unidade: e.target.value || undefined,
+              equipe: undefined,
+              atendente: undefined,
+            })
+          }
         >
           <option value="">Todas</option>
           {opcoes?.unidades.map((u) => (
@@ -116,10 +121,9 @@ export function BarraDeFiltros() {
         <Select
           rotulo="Equipe"
           value={filtros.equipeId ?? ""}
-          onChange={(e) => {
-            definir("equipe", e.target.value || undefined);
-            definir("atendente", undefined);
-          }}
+          onChange={(e) =>
+            definirVarios({ equipe: e.target.value || undefined, atendente: undefined })
+          }
         >
           <option value="">Todas</option>
           {equipes.map((e) => (

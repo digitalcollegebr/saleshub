@@ -45,14 +45,31 @@ export function useFiltros() {
     };
   }, [parametros]);
 
-  const definir = useCallback(
-    (chave: string, valor: string | undefined) => {
+  /**
+   * Altera vários parâmetros de uma vez.
+   *
+   * Existe porque `definir` chamado duas vezes seguidas **não** compõe: as duas
+   * chamadas acontecem no mesmo evento e leem o mesmo `parametros` do closure,
+   * então a segunda monta a URL a partir do estado anterior e sobrescreve a
+   * primeira. Era o que quebrava o filtro de período: `de` e `ate` eram gravados
+   * em sequência, sobrava só `ate`, e todo botão devolvia a janela padrão de 30
+   * dias — o filtro parecia não funcionar porque de fato não funcionava.
+   */
+  const definirVarios = useCallback(
+    (pares: Record<string, string | undefined>) => {
       const novos = new URLSearchParams(parametros.toString());
-      if (valor) novos.set(chave, valor);
-      else novos.delete(chave);
+      for (const [chave, valor] of Object.entries(pares)) {
+        if (valor) novos.set(chave, valor);
+        else novos.delete(chave);
+      }
       router.replace(`${caminho}?${novos.toString()}`, { scroll: false });
     },
     [parametros, router, caminho],
+  );
+
+  const definir = useCallback(
+    (chave: string, valor: string | undefined) => definirVarios({ [chave]: valor }),
+    [definirVarios],
   );
 
   const limpar = useCallback(() => {
@@ -79,5 +96,5 @@ export function useFiltros() {
     filtros.etapaDoFunil,
   ].filter(Boolean).length;
 
-  return { filtros, definir, limpar, linkParaConversas, quantidadeAtiva };
+  return { filtros, definir, definirVarios, limpar, linkParaConversas, quantidadeAtiva };
 }
