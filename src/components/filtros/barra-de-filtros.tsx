@@ -4,32 +4,49 @@ import { FilterX } from "lucide-react";
 import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { useFiltros } from "@/hooks/use-filtros";
+import {
+  intervaloDe,
+  periodoAtivo,
+  PERIODOS,
+  useFiltros,
+  type ChaveDePeriodo,
+} from "@/hooks/use-filtros";
 import { useOpcoesDeFiltro } from "@/hooks/use-dados";
 
-const PERIODOS = [
-  { dias: 7, rotulo: "7 dias" },
-  { dias: 15, rotulo: "15 dias" },
-  { dias: 30, rotulo: "30 dias" },
-  { dias: 90, rotulo: "90 dias" },
-] as const;
+/** `2026-08-07` a partir de um ISO, no fuso de quem olha — é o que o <input type=date> quer. */
+function comoDataLocal(iso: string): string {
+  const d = new Date(iso);
+  const mes = `${d.getMonth() + 1}`.padStart(2, "0");
+  const dia = `${d.getDate()}`.padStart(2, "0");
+  return `${d.getFullYear()}-${mes}-${dia}`;
+}
 
 export function BarraDeFiltros() {
   const { filtros, definir, definirVarios, limpar, quantidadeAtiva } = useFiltros();
   const { data: opcoes, isPending } = useOpcoesDeFiltro();
 
-  function aplicarPeriodo(dias: number) {
-    const fim = new Date();
-    const inicio = new Date(fim.getTime() - dias * 86400000);
-    inicio.setHours(0, 0, 0, 0);
+  function aplicarPeriodo(chave: ChaveDePeriodo) {
     // Uma escrita só: `de` e `ate` formam um recorte, e gravá-los em duas
     // chamadas fazia a segunda apagar a primeira.
-    definirVarios({ de: inicio.toISOString(), ate: fim.toISOString() });
+    definirVarios(intervaloDe(chave));
   }
 
-  const diasAtuais = Math.round(
-    (new Date(filtros.periodoFim).getTime() - new Date(filtros.periodoInicio).getTime()) / 86400000,
-  );
+  /**
+   * Data escolhida à mão. O dia final entra **inteiro**: quem digita 07/08 quer
+   * o dia 7 completo, não até a meia-noite que o abre. Sem isto, escolher o
+   * mesmo dia nos dois campos devolveria zero conversas.
+   */
+  function aplicarData(campo: "de" | "ate", valor: string) {
+    if (!valor) return;
+    const [ano, mes, dia] = valor.split("-").map(Number);
+    const d =
+      campo === "de"
+        ? new Date(ano, mes - 1, dia, 0, 0, 0, 0)
+        : new Date(ano, mes - 1, dia, 23, 59, 59, 999);
+    definirVarios({ [campo]: d.toISOString() });
+  }
+
+  const ativo = periodoAtivo(filtros.periodoInicio);
 
   // Equipes e atendentes seguem a hierarquia: escolher unidade encurta a lista de
   // equipes, e escolher equipe encurta a de atendentes. Sem isso, um select de
@@ -73,24 +90,50 @@ export function BarraDeFiltros() {
           Período
         </span>
         <div className="border-borda flex overflow-hidden rounded-md border">
-          {PERIODOS.map((p) => {
-            const ativo = Math.abs(diasAtuais - p.dias) <= 1;
-            return (
-              <button
-                key={p.dias}
-                type="button"
-                onClick={() => aplicarPeriodo(p.dias)}
-                aria-pressed={ativo}
-                className={`focus:ring-marca/40 px-3 py-1.5 text-xs font-medium transition-colors focus:ring-2 focus:outline-none focus:ring-inset ${
-                  ativo
-                    ? "bg-marca text-white"
-                    : "bg-superficie text-texto-fraco hover:bg-fundo-sutil"
-                }`}
-              >
-                {p.rotulo}
-              </button>
-            );
-          })}
+          {PERIODOS.map((p) => (
+            <button
+              key={p.chave}
+              type="button"
+              onClick={() => aplicarPeriodo(p.chave)}
+              aria-pressed={ativo === p.chave}
+              className={`focus:ring-marca/40 px-3 py-1.5 text-xs font-medium transition-colors focus:ring-2 focus:outline-none focus:ring-inset ${
+                ativo === p.chave
+                  ? "bg-marca text-white"
+                  : "bg-superficie text-texto-fraco hover:bg-fundo-sutil"
+              }`}
+            >
+              {p.rotulo}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
+      {/* Datas sempre visíveis, não escondidas atrás de um botão "personalizado":
+          elas mostram o recorte em vigor mesmo quando ele veio de um preset, e
+          um painel que não diz de quando é o número não serve para decidir. */}
+      <fieldset className="flex flex-col gap-1">
+        <legend className="sr-only">Intervalo específico</legend>
+        <span className="text-texto-fraco text-[11px] font-medium tracking-wide uppercase">
+          {ativo ? "Intervalo" : "Intervalo · personalizado"}
+        </span>
+        <div className="flex items-center gap-1.5">
+          <input
+            type="date"
+            aria-label="Data inicial"
+            value={comoDataLocal(filtros.periodoInicio)}
+            max={comoDataLocal(filtros.periodoFim)}
+            onChange={(e) => aplicarData("de", e.target.value)}
+            className="border-borda bg-superficie text-texto focus:border-marca focus:ring-marca/30 h-9 rounded-md border px-2 text-sm focus:ring-2 focus:outline-none"
+          />
+          <span className="text-texto-fraco text-xs">até</span>
+          <input
+            type="date"
+            aria-label="Data final"
+            value={comoDataLocal(filtros.periodoFim)}
+            min={comoDataLocal(filtros.periodoInicio)}
+            onChange={(e) => aplicarData("ate", e.target.value)}
+            className="border-borda bg-superficie text-texto focus:border-marca focus:ring-marca/30 h-9 rounded-md border px-2 text-sm focus:ring-2 focus:outline-none"
+          />
         </div>
       </fieldset>
 
