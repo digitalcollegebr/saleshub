@@ -70,10 +70,27 @@ que reiniciar não resolve.
 > execução. **A mesma imagem serve demonstração e dados reais.**
 
 ```bash
-API_URL=https://coletor.digitalgenai.com.br/saleshub \
+API_URL=http://api:8000/saleshub \
 SALESHUB_TOKEN=... \
 docker compose up -d
 ```
+
+#### A rede do coletor
+
+O compose entra em duas redes: a do próprio projeto (por onde o Traefik alcança o
+container) e a rede `analisa-vendas`, declarada como `external` — é ela que faz
+`http://api:8000` resolver, porque `api` é o nome do serviço no compose do coletor.
+
+Esse nome é o mesmo em qualquer máquina porque o compose do coletor o **fixa**
+(`networks.default.name`) em vez de deixar o Docker derivá-lo do nome do projeto, que
+seria o diretório do clone em desenvolvimento e o UUID do recurso no Coolify. É um
+acoplamento entre os dois repositórios, deliberado: paga-se uma linha lá para não ter
+que descobrir e configurar um nome de rede em cada ambiente aqui.
+
+Como a rede é externa, o compose **não a cria**. Se ela não existir, `docker compose
+up` para na hora com `network ... declared as external, but could not be found` —
+melhor que subir e só quebrar na primeira consulta. Para rodar em demonstração sem o
+coletor de pé, `REDE_DO_COLETOR=bridge` (a rede padrão do Docker, que sempre existe).
 
 ### Deploy no Coolify
 
@@ -86,6 +103,18 @@ locais vivem em `docker-compose.override.yml`, que o Coolify ignora.
 Em _Environment Variables_, defina `API_URL` e `SALESHUB_TOKEN` — **sem** prefixo
 `NEXT_PUBLIC_`. Elas são lidas em execução pelo proxy, não gravadas no bundle:
 trocar qualquer uma das duas **não exige rebuild**, só reiniciar o serviço.
+
+Na prática só `SALESHUB_TOKEN` precisa ser definida: `API_URL` já vem com o endereço
+interno (`http://api:8000/saleshub`) e a rede do coletor tem nome fixo. Enquanto não
+há login, some `PERMITIR_SEM_SESSAO` — leia o aviso abaixo antes.
+
+O FQDN público do coletor **não** funciona como `API_URL` de dentro do container: ele
+resolve para o IP público do próprio host e o retorno pelo Traefik (hairpin NAT) não
+fecha. O sintoma é o painel carregando eternamente e
+`{"erro":"A API de analytics não respondeu."}` — timeout do proxy, não resposta do
+coletor. Use o endereço interno.
+
+Mudança de rede exige **redeploy**, não reinício: o container é recriado.
 
 > 🔒 **Não ligue a API real antes da autenticação existir.**
 >

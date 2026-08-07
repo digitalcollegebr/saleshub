@@ -7,6 +7,8 @@
 # é o Traefik, pela rede interna. A porta local vive em docker-compose.override.yml,
 # que o compose carrega sozinho na sua máquina e o Coolify ignora (ele passa
 # -f docker-compose.yml explicitamente).
+#
+# Este serviço entra em DUAS redes — ver o bloco `networks` no fim do arquivo.
 
 services:
   web:
@@ -17,7 +19,27 @@ services:
       # SEM prefixo NEXT_PUBLIC_: são lidas pelo proxy no servidor e nunca vão para
       # o bundle. Por isso valem em EXECUÇÃO — preencher as duas e reiniciar liga os
       # dados reais, sem reconstruir imagem. Vazias, o painel serve demonstração.
-      API_URL: ${API_URL:-}
+      #
+      # Estando os dois containers na mesma rede, o endereço é o INTERNO:
+      #
+      #     API_URL=http://api:8000/saleshub
+      #
+      # `api` é o nome do serviço no compose do coletor, que o Docker resolve dentro
+      # da rede; 8000 é a porta que o uvicorn escuta. `http://` puro está certo aqui —
+      # o tráfego não sai da rede Docker, e TLS é trabalho do Traefik na borda.
+      #
+      # O FQDN público NÃO funciona de dentro do container: ele resolve para o IP
+      # público do próprio host, e o retorno pelo Traefik (hairpin NAT) não fecha.
+      # Foi esse o sintoma de "A API de analytics não respondeu".
+      #
+      # Por isso o endereço interno é o PADRÃO, e não algo a configurar: em produção
+      # ele é sempre o certo. Preencher API_URL na mão só faz sentido para apontar
+      # para outro coletor.
+      #
+      # Isto não liga os dados reais sozinho: o modo continua exigindo as duas
+      # variáveis, e SALESHUB_TOKEN segue vazia por padrão. Na prática, o token
+      # passou a ser o único interruptor — que é o que ele já era de fato.
+      API_URL: ${API_URL:-http://api:8000/saleshub}
       SALESHUB_TOKEN: ${SALESHUB_TOKEN:-}
       # Só desenvolvimento: sem login, o proxy nega dados reais. Ver README.
       PERMITIR_SEM_SESSAO: ${PERMITIR_SEM_SESSAO:-}
@@ -26,3 +48,29 @@ services:
     expose:
       - "3000"
     restart: unless-stopped
+    networks:
+      # `default` precisa estar listada: assim que um serviço declara `networks`, o
+      # compose para de anexá-lo à rede do projeto sozinho — e é por ela que o
+      # Traefik alcança o container. Omitir esta linha tira o painel do ar.
+      - default
+      - coletor
+
+networks:
+  # A rede do compose do analisa-vendas, onde o serviço `api` responde por esse nome.
+  #
+  # `external: true` significa "não é nossa": o compose não cria nem remove, só entra.
+  # Se ela não existir, `docker compose up` falha na hora com "network ... not found",
+  # em vez de subir e só quebrar na primeira consulta.
+  #
+  # O nome é o mesmo em qualquer máquina porque o compose do coletor o FIXA
+  # (`networks.default.name: analisa-vendas`), em vez de deixar o Docker derivá-lo do
+  # nome do projeto — que seria o diretório do clone aqui e o UUID do recurso no
+  # Coolify. Mexer naquele nome quebra este arquivo; é um acoplamento entre os dois
+  # repositórios, e está escrito lá também.
+  #
+  # A variável sobra como escape, não como configuração: `REDE_DO_COLETOR=bridge` (a
+  # rede padrão do Docker, que sempre existe) roda o painel em demonstração sem
+  # precisar do coletor de pé.
+  coletor:
+    external: true
+    name: ${REDE_DO_COLETOR:-analisa-vendas}
