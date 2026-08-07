@@ -75,7 +75,11 @@ export function GraficoDeVolume({ serie }: { serie: readonly PontoDaSerie[] }) {
         ) : (
           <div className="text-texto-fraco h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={[...serie]} margin={{ top: 4, right: 8, bottom: 0, left: -18 }}>
+              {/* Sem margem negativa à esquerda: ela puxava o eixo Y para fora do
+                  SVG e cortava o primeiro dígito de cada rótulo — "320" virava
+                  "20", "240" virava "40". O gráfico parecia certo e mentia por um
+                  fator de dez. O espaço do eixo é `width` no YAxis, não margem. */}
+              <AreaChart data={[...serie]} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
                 <defs>
                   <linearGradient id="grad-conversas" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor={MARCA.cores.primaria} stopOpacity={0.28} />

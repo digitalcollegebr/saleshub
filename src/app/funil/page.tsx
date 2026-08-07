@@ -104,7 +104,7 @@ function ConteudoDoPainel() {
           <div className="grid gap-4 xl:grid-cols-3">
             <GraficoDeDistribuicao
               titulo="Principais objeções"
-              descricao="Resistências identificadas pela análise nas conversas do período."
+              descricao="Resistências identificadas pela análise. O percentual é a fatia de cada motivo entre as objeções registradas."
               itens={painel.data.objecoes}
               vazioTitulo="Nenhuma objeção identificada"
               vazioDescricao="A análise não encontrou resistências registradas nas conversas filtradas."
@@ -112,14 +112,14 @@ function ConteudoDoPainel() {
             />
             <GraficoDeDistribuicao
               titulo="Cursos mais procurados"
-              descricao="Curso de interesse inferido do conteúdo de cada conversa."
+              descricao="Curso de interesse inferido do conteúdo da conversa. O percentual é sobre as conversas em que houve curso identificado."
               itens={painel.data.cursos}
               vazioTitulo="Nenhum curso identificado"
               vazioDescricao="As conversas filtradas não permitiram identificar curso de interesse."
             />
             <GraficoDeDistribuicao
               titulo="Sentimento do lead"
-              descricao="Tom predominante do lead ao longo da conversa."
+              descricao="Tom predominante do lead. O percentual é sobre as conversas que já têm leitura de sentimento, não sobre o período."
               itens={painel.data.sentimentos}
               vazioTitulo="Sem leitura de sentimento"
               vazioDescricao="Não há conversas suficientes para uma leitura de sentimento."

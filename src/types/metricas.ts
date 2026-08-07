@@ -75,8 +75,14 @@ export interface ItemDeDistribuicao {
 
 export interface LinhaDoRanking {
   readonly atendenteId: string;
-  readonly atendenteNome: string;
-  readonly equipeNome: string;
+  /**
+   * Nulo quando o coletor tem o id do atendente mas não o nome — é o que
+   * acontece com todo atendimento normalizado antes de `content.user.name` ser
+   * lido. O tipo dizia `string` e a coluna saía em branco na tela, sem que nada
+   * acusasse: TypeScript não protege contra o que a API realmente manda.
+   */
+  readonly atendenteNome: string | null;
+  readonly equipeNome: string | null;
   readonly conversas: number;
   readonly tempoMedioPrimeiraRespostaSegundos: number | null;
   readonly comProximoPasso: number;

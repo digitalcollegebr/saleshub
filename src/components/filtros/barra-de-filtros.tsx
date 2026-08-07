@@ -46,6 +46,10 @@ export function BarraDeFiltros() {
   const temUnidades = (opcoes?.unidades.length ?? 0) > 0;
   const temEquipes = equipes.length > 0;
   const temCampanhas = (opcoes?.campanhas.length ?? 0) > 0;
+  // Atendente seguia a regra oposta às irmãs: aparecia sempre. Em produção a
+  // lista veio vazia e sobrou um select com só "Todos" dentro — exatamente o
+  // controle que promete recorte e não entrega, que o comentário acima recusa.
+  const temAtendentes = atendentes.length > 0;
 
   if (isPending) {
     return (
@@ -126,18 +130,20 @@ export function BarraDeFiltros() {
         </Select>
       )}
 
-      <Select
-        rotulo="Atendente"
-        value={filtros.atendenteId ?? ""}
-        onChange={(e) => definir("atendente", e.target.value || undefined)}
-      >
-        <option value="">Todos</option>
-        {atendentes.map((a) => (
-          <option key={a.id} value={a.id}>
-            {a.nome}
-          </option>
-        ))}
-      </Select>
+      {temAtendentes && (
+        <Select
+          rotulo="Atendente"
+          value={filtros.atendenteId ?? ""}
+          onChange={(e) => definir("atendente", e.target.value || undefined)}
+        >
+          <option value="">Todos</option>
+          {atendentes.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.nome}
+            </option>
+          ))}
+        </Select>
+      )}
 
       {temCampanhas && (
         <Select

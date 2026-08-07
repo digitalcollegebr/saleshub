@@ -184,8 +184,17 @@ export function RankingDeAtendentes({ linhas }: { linhas: readonly LinhaDoRankin
               <tbody className="divide-borda divide-y">
                 {linhas.map((linha) => (
                   <tr key={linha.atendenteId} className="hover:bg-fundo-sutil transition-colors">
-                    <td className="text-texto px-4 py-2.5 font-medium">{linha.atendenteNome}</td>
-                    <td className="text-texto-fraco px-4 py-2.5">{linha.equipeNome}</td>
+                    {/* Sem nome, mostra o id. Célula vazia parece defeito de
+                        renderização e esconde que a linha tem dados válidos —
+                        o id ao menos identifica a pessoa e é rastreável. */}
+                    <td className="text-texto px-4 py-2.5 font-medium">
+                      {linha.atendenteNome ?? (
+                        <span className="text-texto-fraco font-normal">
+                          Atendente {linha.atendenteId}
+                        </span>
+                      )}
+                    </td>
+                    <td className="text-texto-fraco px-4 py-2.5">{linha.equipeNome || "—"}</td>
                     <td className="px-4 py-2.5 text-right tabular-nums">
                       {formatarInteiro(linha.conversas)}
                     </td>
