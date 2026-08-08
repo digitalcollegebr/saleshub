@@ -11,7 +11,9 @@ export const MARCA = {
   produto: "SalesHub",
   descricao: "Conversation Analytics comercial",
   organizacao: "Digital College",
-  assinatura: "Análises construídas sobre as conversas do time comercial",
+  // Sem "do time comercial": a mesma barra lateral serve cobrança e atendimento ao
+  // aluno desde que as conversas passaram a ser separadas por área.
+  assinatura: "Análises construídas sobre as conversas atendidas no SZ Chat",
 
   /** Iniciais do logotipo enquanto não há arquivo de imagem definitivo. */
   monograma: "DC",
