@@ -56,7 +56,7 @@ export function PainelOperacional({ titulo, descricao }: { titulo: string; descr
         <p className="text-texto-fraco mt-0.5 max-w-3xl text-xs leading-relaxed">{descricao}</p>
       </header>
 
-      <BarraDeFiltros />
+      <BarraDeFiltros recortesComerciais={false} />
 
       {painel.isError ? (
         <EstadoDeErro erro={painel.error} aoTentarNovamente={() => painel.refetch()} />

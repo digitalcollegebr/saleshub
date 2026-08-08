@@ -21,7 +21,16 @@ function comoDataLocal(iso: string): string {
   return `${d.getFullYear()}-${mes}-${dia}`;
 }
 
-export function BarraDeFiltros() {
+/**
+ * `recortesComerciais` esconde Curso e Etapa.
+ *
+ * Curso de interesse e etapa do funil são leitura da negociação. Numa tela de
+ * cobrança eles não filtram nada útil — filtram por uma classificação que aquelas
+ * conversas nunca receberam — e, pior, sugerem que a régua comercial se aplica
+ * ali. Um controle que promete um recorte e não entrega é pior que a ausência
+ * dele; é o mesmo motivo por que unidade e campanha somem quando vêm vazias.
+ */
+export function BarraDeFiltros({ recortesComerciais = true }: { recortesComerciais?: boolean }) {
   const { filtros, definir, definirVarios, limpar, quantidadeAtiva } = useFiltros();
   const { data: opcoes, isPending } = useOpcoesDeFiltro();
 
@@ -220,31 +229,35 @@ export function BarraDeFiltros() {
         ))}
       </Select>
 
-      <Select
-        rotulo="Curso"
-        value={filtros.cursoId ?? ""}
-        onChange={(e) => definir("curso", e.target.value || undefined)}
-      >
-        <option value="">Todos</option>
-        {opcoes?.cursos.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.nome}
-          </option>
-        ))}
-      </Select>
+      {recortesComerciais && (
+        <Select
+          rotulo="Curso"
+          value={filtros.cursoId ?? ""}
+          onChange={(e) => definir("curso", e.target.value || undefined)}
+        >
+          <option value="">Todos</option>
+          {opcoes?.cursos.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.nome}
+            </option>
+          ))}
+        </Select>
+      )}
 
-      <Select
-        rotulo="Etapa"
-        value={filtros.etapaDoFunil ?? ""}
-        onChange={(e) => definir("etapa", e.target.value || undefined)}
-      >
-        <option value="">Todas</option>
-        {opcoes?.etapas.map((e) => (
-          <option key={e.id} value={e.id}>
-            {e.nome}
-          </option>
-        ))}
-      </Select>
+      {recortesComerciais && (
+        <Select
+          rotulo="Etapa"
+          value={filtros.etapaDoFunil ?? ""}
+          onChange={(e) => definir("etapa", e.target.value || undefined)}
+        >
+          <option value="">Todas</option>
+          {opcoes?.etapas.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.nome}
+            </option>
+          ))}
+        </Select>
+      )}
 
       {quantidadeAtiva > 0 && (
         <button

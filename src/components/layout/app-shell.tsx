@@ -74,6 +74,26 @@ const NAVEGACAO: readonly {
   },
 ];
 
+/**
+ * O que o cabeçalho anuncia depende de onde se está.
+ *
+ * Era fixo em "Funil de conversas · dados extraídos das conversas comerciais",
+ * o que passou a ser uma afirmação falsa em `/cobranca`: a tela mostra conversa de
+ * cobrança, e o topo dizia que era comercial. Num painel, um rótulo errado é pior
+ * que um rótulo ausente — ele afirma.
+ */
+function secaoDoCaminho(caminho: string): { titulo: string; subtitulo: string } {
+  const item = NAVEGACAO.find((n) => caminho.startsWith(n.href));
+  if (!item) return { titulo: MARCA.produto, subtitulo: MARCA.descricao };
+  return {
+    titulo: item.rotulo,
+    subtitulo:
+      item.area === "funil"
+        ? `${MARCA.descricao} · dados extraídos das conversas comerciais`
+        : `${MARCA.descricao} · área identificada pela análise da conversa`,
+  };
+}
+
 function Marca() {
   return (
     <div className="flex items-center gap-2.5">
@@ -101,6 +121,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: usuario } = useUsuario();
   const { data: origem } = useOrigemDosDados();
   const perfil = usuario?.perfil ?? "diretor";
+  const secao = secaoDoCaminho(caminho);
 
   return (
     <div className="bg-fundo flex min-h-dvh">
@@ -155,10 +176,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Marca />
           </div>
           <div className="hidden lg:block">
-            <h1 className="text-texto text-sm font-semibold">Funil de conversas</h1>
-            <p className="text-texto-fraco text-[11px]">
-              {MARCA.descricao} · dados extraídos das conversas comerciais
-            </p>
+            <h1 className="text-texto text-sm font-semibold">{secao.titulo}</h1>
+            <p className="text-texto-fraco text-[11px]">{secao.subtitulo}</p>
           </div>
 
           <div className="flex items-center gap-3">
