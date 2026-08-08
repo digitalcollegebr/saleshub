@@ -30,7 +30,7 @@ const NAVEGACAO: readonly {
     href: "/conversas",
     rotulo: "Conversas",
     Icone: MessagesSquare,
-    disponivel: false,
+    disponivel: true,
   },
   {
     area: "marketing",

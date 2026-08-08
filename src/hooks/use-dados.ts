@@ -7,7 +7,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/services";
-import type { FiltrosDoPainel } from "@/types";
+import type { FiltrosDoPainel, Paginacao } from "@/types";
 
 /** Filtros fazem parte da chave: recorte diferente é entrada de cache diferente. */
 const chave = {
@@ -17,6 +17,8 @@ const chave = {
   painel: (f: FiltrosDoPainel) => ["painel-do-funil", f] as const,
   atencao: (f: FiltrosDoPainel) => ["conversas-com-atencao", f] as const,
   oportunidades: (f: FiltrosDoPainel) => ["oportunidades", f] as const,
+  conversas: (f: FiltrosDoPainel, p: Paginacao) => ["conversas", f, p] as const,
+  conversa: (id: string) => ["conversa", id] as const,
 };
 
 export function useUsuario() {
@@ -75,5 +77,22 @@ export function useOportunidades(filtros: FiltrosDoPainel) {
     queryKey: chave.oportunidades(filtros),
     queryFn: () => api.listarOportunidadesEmAberto(filtros),
     placeholderData: (anterior) => anterior,
+  });
+}
+
+/** Lista paginada. A página entra na chave: virar página é outra consulta, não outro filtro. */
+export function useConversas(filtros: FiltrosDoPainel, paginacao: Paginacao) {
+  return useQuery({
+    queryKey: chave.conversas(filtros, paginacao),
+    queryFn: () => api.listarConversas(filtros, paginacao),
+  });
+}
+
+/** Uma conversa, com transcrição. `id` vazio não consulta. */
+export function useConversa(id: string) {
+  return useQuery({
+    queryKey: chave.conversa(id),
+    queryFn: () => api.obterConversa(id),
+    enabled: Boolean(id),
   });
 }
