@@ -9,7 +9,7 @@
  */
 
 import { usePathname } from "next/navigation";
-import { Menu } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { MARCA } from "@/lib/brand";
 import { FundoDaMarca, SimboloDaMarca } from "./marca";
 import { GavetaDeNavegacao, ITENS, ListaDeNavegacao, useGaveta } from "./navegacao";
@@ -67,6 +67,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // O painel de TV ocupa a tela inteira: barra lateral e cabeçalho roubariam
   // área útil e não servem a ninguém do outro lado da sala. Ver app/tv/page.tsx.
   if (caminho.startsWith("/tv")) return <>{children}</>;
+  // A tela de entrada é anterior à sessão: não há perfil para montar menu.
+  if (caminho.startsWith("/entrar")) return <>{children}</>;
 
   return (
     <div className="flex min-h-dvh">
@@ -115,6 +117,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   {usuario ? ROTULO_PERFIL[usuario.perfil] : "carregando…"}
                 </p>
               </div>
+              <form method="POST" action="/api/auth/sair">
+                <button
+                  type="submit"
+                  aria-label="Sair"
+                  title="Sair"
+                  className="text-texto-fraco hover:text-texto hover:bg-fundo-sutil rounded-full p-2"
+                >
+                  <LogOut className="size-4" aria-hidden="true" />
+                </button>
+              </form>
               <span
                 className="bg-fundo-sutil text-texto-fraco grid size-8 place-items-center rounded-full text-xs font-semibold"
                 aria-hidden="true"

@@ -4,8 +4,19 @@
  * de identidade depois não vira refatoração de componente.
  */
 
-export type PerfilDeAcesso =
-  "diretor" | "gestor_de_vendas" | "gestor_de_marketing" | "administrador";
+export type PerfilDeAcesso = (typeof PERFIS_VALIDOS)[number];
+
+/**
+ * A lista existe além do tipo porque `ACESSOS` chega como texto de variável de
+ * ambiente: o TypeScript não valida string em tempo de execução, e um perfil
+ * escrito errado ali viraria um acesso com poder indefinido.
+ */
+export const PERFIS_VALIDOS = [
+  "diretor",
+  "gestor_de_vendas",
+  "gestor_de_marketing",
+  "administrador",
+] as const;
 
 export interface UsuarioAutenticado {
   readonly id: string;

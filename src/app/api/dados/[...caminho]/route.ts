@@ -41,6 +41,8 @@
 import { NextRequest } from "next/server";
 
 import { ApiMock } from "@/services/mock/api-mock";
+import { cookies } from "next/headers";
+import { COOKIE_DA_SESSAO, ler } from "@/lib/sessao";
 import { configuracaoDoColetor } from "@/services/origem";
 import type { FiltrosDoPainel, Paginacao } from "@/types";
 
@@ -92,11 +94,18 @@ const ROTAS = [
   },
 ] as const;
 
-function autorizado(): boolean {
-  // TODO(autenticação): trocar por verificação de sessão de verdade — é aqui que
-  // o provedor de identidade encosta. Enquanto não existe, o padrão é NEGAR: um
-  // proxy aberto para conversas de clientes é pior que não ter proxy nenhum.
-  return process.env.PERMITIR_SEM_SESSAO === "true";
+/**
+ * Sessão válida? `src/proxy.ts` já barra antes de chegar aqui — isto é a segunda
+ * tranca, e existe porque um proxy é uma linha de `matcher` de distância de
+ * deixar uma rota passar. Um proxy de dados aberto para conversas de clientes é
+ * pior que não ter proxy nenhum.
+ *
+ * `PERMITIR_SEM_SESSAO` continua, restrito ao desenvolvimento: em produção ele é
+ * ignorado, para que ninguém abra o painel inteiro esquecendo uma variável.
+ */
+async function autorizado(): Promise<boolean> {
+  if (ler((await cookies()).get(COOKIE_DA_SESSAO)?.value)) return true;
+  return process.env.NODE_ENV !== "production" && process.env.PERMITIR_SEM_SESSAO === "true";
 }
 
 /**
@@ -155,7 +164,7 @@ export async function GET(
     return Response.json(dados, { headers: { "x-origem-dos-dados": "mock" } });
   }
 
-  if (!autorizado()) {
+  if (!(await autorizado())) {
     return Response.json({ erro: "Não autenticado." }, { status: 401 });
   }
 

@@ -6,24 +6,31 @@
  * responder "quem é você" — daí este arquivo existir ao lado do proxy, e o Next
  * dar precedência à rota específica sobre o `[...caminho]`.
  *
- * É aqui que a autenticação de verdade encosta: trocar o perfil fixo abaixo pela
- * sessão do provedor de identidade. `AppShell` e `podeVer()` já consomem o perfil,
- * então nenhum componente muda.
+ * O 401 aqui é redundante com `src/proxy.ts`, que já barra sem sessão. Fica
+ * porque defesa em profundidade custa três linhas: se um dia alguém mexer no
+ * `matcher` do proxy e esta rota escapar, ela continua fechada sozinha.
  */
 
+import { cookies } from "next/headers";
+import { COOKIE_DA_SESSAO, ler } from "@/lib/sessao";
 import type { UsuarioAutenticado } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-const DEMONSTRACAO: UsuarioAutenticado = {
-  id: "u-demo",
-  nome: "Usuário de demonstração",
-  email: "demo@digitalcollege.com.br",
-  perfil: "diretor",
-  unidadesPermitidas: "todas",
-};
+export async function GET(): Promise<Response> {
+  const sessao = ler((await cookies()).get(COOKIE_DA_SESSAO)?.value);
+  if (!sessao) {
+    return Response.json({ erro: "Sessão expirada ou ausente." }, { status: 401 });
+  }
 
-export function GET(): Response {
-  // TODO(autenticação): ler a sessão e devolver o usuário real.
-  return Response.json(DEMONSTRACAO);
+  const usuario: UsuarioAutenticado = {
+    id: sessao.sub,
+    nome: sessao.nome,
+    email: sessao.email,
+    perfil: sessao.perfil,
+    // Unidade não é coletada pelo SZ Chat (ver consultas.py): não há o que
+    // restringir, e inventar uma lista aqui daria a impressão de que há.
+    unidadesPermitidas: "todas",
+  };
+  return Response.json(usuario);
 }
