@@ -87,10 +87,13 @@ function secaoDoCaminho(caminho: string): { titulo: string; subtitulo: string } 
   if (!item) return { titulo: MARCA.produto, subtitulo: MARCA.descricao };
   return {
     titulo: item.rotulo,
+    // `MARCA.descricao` carrega a palavra "comercial" — ela descreve o produto
+    // como nasceu, e fora do funil deixaria o topo dizendo "comercial" na tela de
+    // cobrança de novo, só que mais escondido.
     subtitulo:
       item.area === "funil"
         ? `${MARCA.descricao} · dados extraídos das conversas comerciais`
-        : `${MARCA.descricao} · área identificada pela análise da conversa`,
+        : "Conversation Analytics · área identificada pela análise da conversa",
   };
 }
 
