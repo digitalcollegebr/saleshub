@@ -43,7 +43,6 @@ import { NextRequest } from "next/server";
 import { ApiMock } from "@/services/mock/api-mock";
 import { cookies } from "next/headers";
 import { COOKIE_DA_SESSAO, ler } from "@/lib/sessao";
-import { ehPedidoDoQuiosque } from "@/lib/quiosque";
 import { permissoesDe } from "@/lib/permissoes-do-usuario";
 import type { Permissao } from "@/types";
 import { configuracaoDoColetor } from "@/services/origem";
@@ -221,13 +220,11 @@ async function encaminhar(
 
   // Antes de qualquer coisa, inclusive do modo demonstração: administração de
   // acesso não é dado de painel, e não deve ficar aberta nem com dado fictício.
-  const doQuiosque = ehPedidoDoQuiosque(rota, req.nextUrl.searchParams, metodo);
-
   if ("somenteAdmin" in permitida && permitida.somenteAdmin) {
     if (!(await ehAdministrador())) {
       return Response.json({ erro: "Requer permissão de administrador." }, { status: 403 });
     }
-  } else if (!doQuiosque && !(await podeBuscar(rota, req.nextUrl.searchParams))) {
+  } else if (!(await podeBuscar(rota, req.nextUrl.searchParams))) {
     return Response.json({ erro: "Sem permissão para estes dados." }, { status: 403 });
   }
 
@@ -244,7 +241,7 @@ async function encaminhar(
     return Response.json(dados, { headers: { "x-origem-dos-dados": "mock" } });
   }
 
-  if (!doQuiosque && !(await autorizado())) {
+  if (!(await autorizado())) {
     return Response.json({ erro: "Não autenticado." }, { status: 401 });
   }
 

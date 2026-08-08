@@ -19,7 +19,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { COOKIE_DA_SESSAO, ler } from "@/lib/sessao";
 import { urlDoApp } from "@/lib/url";
-import { ehCaminhoDoQuiosque } from "@/lib/quiosque";
 
 /**
  * O que passa sem sessão.
@@ -27,26 +26,13 @@ import { ehCaminhoDoQuiosque } from "@/lib/quiosque";
  * Lista curta e fechada, por prefixo exato. `/api/saude` fica aberta porque é o
  * healthcheck do container — se ela exigisse sessão, o Docker mataria o serviço
  * por não conseguir provar que ele está vivo.
- *
- * `/tv` é a TV da sala: ela fica ligada meses, e uma sessão que expira de
- * madrugada vira tela de login na parede até alguém reparar. Abrir a página não
- * basta — ela busca dados em `/api/dados/painel/funil`, e a liberação
- * correspondente está lá, restrita a essa rota. O que fica público com isso está
- * escrito em `QUIOSQUE`, no proxy de dados: agregados e ranking por atendente,
- * nunca conversa de cliente.
  */
-const ABERTAS = ["/entrar", "/api/auth/", "/api/saude", "/tv"];
+const ABERTAS = ["/entrar", "/api/auth/", "/api/saude"];
 
 export function proxy(pedido: NextRequest) {
   const { pathname } = pedido.nextUrl;
 
   if (ABERTAS.some((prefixo) => pathname === prefixo || pathname.startsWith(prefixo))) {
-    return NextResponse.next();
-  }
-
-  // O pedido de dados da TV. A conferência de verdade acontece no proxy de
-  // dados; aqui é só não matá-lo antes de chegar lá.
-  if (ehCaminhoDoQuiosque(pathname, pedido.nextUrl.searchParams, pedido.method)) {
     return NextResponse.next();
   }
 
