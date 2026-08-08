@@ -116,11 +116,6 @@ export function BarraDeFiltros({ recortesComerciais = true }: { recortesComercia
             </button>
           ))}
         </div>
-        {periodoInvertido && (
-          <p role="alert" className="text-[11px] text-red-700 dark:text-red-300">
-            A data final é anterior à inicial — nenhum recorte cabe aí.
-          </p>
-        )}
       </fieldset>
 
       {/* Datas sempre visíveis, não escondidas atrás de um botão "personalizado":
@@ -152,6 +147,11 @@ export function BarraDeFiltros({ recortesComerciais = true }: { recortesComercia
             className="border-borda bg-superficie text-texto focus:border-marca focus:ring-marca/30 h-9 rounded-md border px-2 text-sm focus:ring-2 focus:outline-none"
           />
         </div>
+        {periodoInvertido && (
+          <p role="alert" className="text-[11px] text-red-700 dark:text-red-300">
+            A data final é anterior à inicial — nenhum recorte cabe aí.
+          </p>
+        )}
       </fieldset>
 
       {temUnidades && (
