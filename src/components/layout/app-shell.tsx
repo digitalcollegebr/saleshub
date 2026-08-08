@@ -8,72 +8,14 @@
  * responde ao perfil sem refatoração.
  */
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  BarChart3,
-  Filter,
-  GraduationCap,
-  Megaphone,
-  MessagesSquare,
-  Receipt,
-  Settings,
-  ShieldCheck,
-} from "lucide-react";
+import { Menu } from "lucide-react";
 import { MARCA } from "@/lib/brand";
 import { FundoDaMarca, SimboloDaMarca } from "./marca";
-import { cn } from "@/lib/utils";
+import { GavetaDeNavegacao, ITENS, ListaDeNavegacao, useGaveta } from "./navegacao";
 import { useOrigemDosDados, useUsuario } from "@/hooks/use-dados";
 import { Badge } from "@/components/ui/badge";
-import { ROTULO_PERFIL, podeVer, type AreaDaAplicacao } from "@/types";
-
-const NAVEGACAO: readonly {
-  area: AreaDaAplicacao;
-  href: string;
-  rotulo: string;
-  Icone: typeof BarChart3;
-  disponivel: boolean;
-}[] = [
-  { area: "funil", href: "/funil", rotulo: "Funil de conversas", Icone: Filter, disponivel: true },
-  // As três operações que compartilham o SZ Chat, juntas e no topo: a separação
-  // entre elas é o que o painel passou a garantir, e o menu é onde isso se vê.
-  { area: "cobranca", href: "/cobranca", rotulo: "Cobrança", Icone: Receipt, disponivel: true },
-  {
-    area: "atendimento",
-    href: "/atendimento",
-    rotulo: "Atendimento ao aluno",
-    Icone: GraduationCap,
-    disponivel: true,
-  },
-  {
-    area: "conversas",
-    href: "/conversas",
-    rotulo: "Conversas",
-    Icone: MessagesSquare,
-    disponivel: true,
-  },
-  {
-    area: "marketing",
-    href: "/marketing",
-    rotulo: "Marketing",
-    Icone: Megaphone,
-    disponivel: false,
-  },
-  {
-    area: "qualidade",
-    href: "/qualidade",
-    rotulo: "Qualidade",
-    Icone: ShieldCheck,
-    disponivel: false,
-  },
-  {
-    area: "configuracoes",
-    href: "/configuracoes",
-    rotulo: "Configurações",
-    Icone: Settings,
-    disponivel: false,
-  },
-];
+import { ROTULO_PERFIL } from "@/types";
 
 /**
  * O que o cabeçalho anuncia depende de onde se está.
@@ -84,7 +26,7 @@ const NAVEGACAO: readonly {
  * que um rótulo ausente — ele afirma.
  */
 function secaoDoCaminho(caminho: string): { titulo: string; subtitulo: string } {
-  const item = NAVEGACAO.find((n) => caminho.startsWith(n.href));
+  const item = ITENS.find((n) => caminho.startsWith(n.href));
   if (!item) return { titulo: MARCA.produto, subtitulo: MARCA.descricao };
   return {
     titulo: item.rotulo,
@@ -120,50 +62,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { data: origem } = useOrigemDosDados();
   const perfil = usuario?.perfil ?? "diretor";
   const secao = secaoDoCaminho(caminho);
+  const gaveta = useGaveta();
 
   return (
     <div className="flex min-h-dvh">
       <FundoDaMarca />
+      <GavetaDeNavegacao perfil={perfil} aberta={gaveta.aberta} aoFechar={gaveta.fechar} />
       <aside className="border-borda bg-superficie hidden w-60 shrink-0 flex-col border-r lg:flex">
         <div className="border-borda border-b p-4">
           <Marca />
         </div>
-        <nav aria-label="Navegação principal" className="flex-1 space-y-0.5 p-2">
-          {NAVEGACAO.filter((item) => podeVer(perfil, item.area)).map((item) => {
-            const ativo = caminho.startsWith(item.href);
-            const conteudo = (
-              <>
-                <item.Icone className="size-4 shrink-0" aria-hidden="true" />
-                <span className="truncate">{item.rotulo}</span>
-                {!item.disponivel && (
-                  <span className="text-texto-fraco ml-auto text-[10px]">em breve</span>
-                )}
-              </>
-            );
-            const classe = cn(
-              "flex items-center gap-2.5 rounded-controle px-2.5 py-2 text-sm transition-colors",
-              ativo
-                ? "bg-marca-suave font-medium text-marca"
-                : "text-texto-fraco hover:bg-fundo-sutil hover:text-texto",
-              !item.disponivel && "cursor-not-allowed opacity-55 hover:bg-transparent",
-            );
-
-            return item.disponivel ? (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={classe}
-                aria-current={ativo ? "page" : undefined}
-              >
-                {conteudo}
-              </Link>
-            ) : (
-              <span key={item.href} className={classe} aria-disabled="true">
-                {conteudo}
-              </span>
-            );
-          })}
-        </nav>
+        <ListaDeNavegacao perfil={perfil} />
         <p className="border-borda text-texto-fraco border-t p-3 text-[11px] leading-relaxed">
           {MARCA.assinatura}
         </p>
@@ -171,7 +80,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="border-borda bg-superficie flex items-center justify-between gap-4 border-b px-4 py-3">
-          <div className="lg:hidden">
+          <div className="flex items-center gap-2 lg:hidden">
+            <button
+              type="button"
+              onClick={gaveta.abrir}
+              aria-label="Abrir navegação"
+              className="text-texto-fraco hover:text-texto hover:bg-fundo-sutil -ml-1 rounded-full p-2"
+            >
+              <Menu className="size-5" aria-hidden="true" />
+            </button>
             <Marca />
           </div>
           <div className="hidden lg:block">

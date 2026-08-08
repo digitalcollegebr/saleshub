@@ -175,86 +175,144 @@ export function RankingDeAtendentes({
             />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <caption className="sr-only">Desempenho conversacional por atendente</caption>
-              <thead>
-                <tr className="border-borda text-texto-fraco border-b text-left text-[11px] tracking-wide uppercase">
-                  <th scope="col" className="px-4 py-2 font-medium">
-                    Atendente
-                  </th>
-                  <th scope="col" className="px-4 py-2 font-medium">
-                    Equipe
-                  </th>
-                  <th scope="col" className="px-4 py-2 text-right font-medium">
-                    Conversas
-                  </th>
-                  <th scope="col" className="px-4 py-2 text-right font-medium">
-                    1ª resposta
-                  </th>
-                  {colunasComerciais && (
-                    <>
-                      <th scope="col" className="px-4 py-2 text-right font-medium">
-                        Próx. passo
-                      </th>
-                      <th scope="col" className="px-4 py-2 text-right font-medium">
-                        Indício conv.
-                      </th>
-                    </>
-                  )}
-                  <th scope="col" className="px-4 py-2 text-right font-medium">
-                    Qualidade
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-borda divide-y">
-                {linhas.map((linha) => (
-                  <tr key={linha.atendenteId} className="hover:bg-fundo-sutil transition-colors">
-                    {/* Sem nome, mostra o id. Célula vazia parece defeito de
-                        renderização e esconde que a linha tem dados válidos —
-                        o id ao menos identifica a pessoa e é rastreável. */}
-                    <td className="text-texto px-4 py-2.5 font-medium">
-                      {linha.atendenteNome ?? (
-                        <span className="text-texto-fraco font-normal">
-                          Atendente {linha.atendenteId}
-                        </span>
-                      )}
-                    </td>
-                    <td className="text-texto-fraco px-4 py-2.5">{linha.equipeNome || "—"}</td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">
+          <>
+            {/* Cartões abaixo de `md`: sete colunas não cabem em 390px. */}
+            <ul className="divide-borda divide-y md:hidden">
+              {linhas.map((linha) => (
+                <li key={linha.atendenteId} className="p-4">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-texto font-medium">
+                      {linha.atendenteNome ?? `Atendente ${linha.atendenteId}`}
+                    </span>
+                    <span className="text-texto tabular-nums">
                       {formatarInteiro(linha.conversas)}
-                    </td>
-                    <td className="text-texto-fraco px-4 py-2.5 text-right tabular-nums">
-                      {formatarDuracao(linha.tempoMedioPrimeiraRespostaSegundos)}
-                    </td>
+                      <span className="text-texto-fraco text-[11px]"> conversas</span>
+                    </span>
+                  </div>
+                  <p className="text-texto-fraco mt-1 text-[11px]">{linha.equipeNome || "—"}</p>
+                  <div className="text-texto-fraco mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
+                    <span>
+                      1ª resposta{" "}
+                      <span className="text-texto tabular-nums">
+                        {formatarDuracao(linha.tempoMedioPrimeiraRespostaSegundos)}
+                      </span>
+                    </span>
                     {colunasComerciais && (
                       <>
-                        <td className="px-4 py-2.5 text-right tabular-nums">
-                          {formatarInteiro(linha.comProximoPasso)}
-                        </td>
-                        <td className="px-4 py-2.5 text-right tabular-nums">
-                          {formatarInteiro(linha.comIndicioDeConversao)}
-                        </td>
+                        <span>
+                          próx. passo{" "}
+                          <span className="text-texto tabular-nums">
+                            {formatarInteiro(linha.comProximoPasso)}
+                          </span>
+                        </span>
+                        <span>
+                          indícios{" "}
+                          <span className="text-texto tabular-nums">
+                            {formatarInteiro(linha.comIndicioDeConversao)}
+                          </span>
+                        </span>
                       </>
                     )}
-                    <td className="px-4 py-2.5">
-                      <span className="flex items-center justify-end gap-1.5 tabular-nums">
+                    <span className="flex items-center gap-1">
+                      qualidade{" "}
+                      <span className="text-texto tabular-nums">
                         {linha.qualidadeMedia.valor === null
                           ? "—"
                           : formatarInteiro(linha.qualidadeMedia.valor)}
-                        <SeloDeOrigem
-                          origem={linha.qualidadeMedia.origem}
-                          confianca={linha.qualidadeMedia.confianca}
-                          justificativa={linha.qualidadeMedia.justificativa}
-                          compacto
-                        />
                       </span>
-                    </td>
+                      <SeloDeOrigem
+                        origem={linha.qualidadeMedia.origem}
+                        confianca={linha.qualidadeMedia.confianca}
+                        justificativa={linha.qualidadeMedia.justificativa}
+                        compacto
+                      />
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full text-sm">
+                <caption className="sr-only">Desempenho conversacional por atendente</caption>
+                <thead>
+                  <tr className="border-borda text-texto-fraco border-b text-left text-[11px] tracking-wide uppercase">
+                    <th scope="col" className="px-4 py-2 font-medium">
+                      Atendente
+                    </th>
+                    <th scope="col" className="px-4 py-2 font-medium">
+                      Equipe
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-right font-medium">
+                      Conversas
+                    </th>
+                    <th scope="col" className="px-4 py-2 text-right font-medium">
+                      1ª resposta
+                    </th>
+                    {colunasComerciais && (
+                      <>
+                        <th scope="col" className="px-4 py-2 text-right font-medium">
+                          Próx. passo
+                        </th>
+                        <th scope="col" className="px-4 py-2 text-right font-medium">
+                          Indício conv.
+                        </th>
+                      </>
+                    )}
+                    <th scope="col" className="px-4 py-2 text-right font-medium">
+                      Qualidade
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-borda divide-y">
+                  {linhas.map((linha) => (
+                    <tr key={linha.atendenteId} className="hover:bg-fundo-sutil transition-colors">
+                      {/* Sem nome, mostra o id. Célula vazia parece defeito de
+                        renderização e esconde que a linha tem dados válidos —
+                        o id ao menos identifica a pessoa e é rastreável. */}
+                      <td className="text-texto px-4 py-2.5 font-medium">
+                        {linha.atendenteNome ?? (
+                          <span className="text-texto-fraco font-normal">
+                            Atendente {linha.atendenteId}
+                          </span>
+                        )}
+                      </td>
+                      <td className="text-texto-fraco px-4 py-2.5">{linha.equipeNome || "—"}</td>
+                      <td className="px-4 py-2.5 text-right tabular-nums">
+                        {formatarInteiro(linha.conversas)}
+                      </td>
+                      <td className="text-texto-fraco px-4 py-2.5 text-right tabular-nums">
+                        {formatarDuracao(linha.tempoMedioPrimeiraRespostaSegundos)}
+                      </td>
+                      {colunasComerciais && (
+                        <>
+                          <td className="px-4 py-2.5 text-right tabular-nums">
+                            {formatarInteiro(linha.comProximoPasso)}
+                          </td>
+                          <td className="px-4 py-2.5 text-right tabular-nums">
+                            {formatarInteiro(linha.comIndicioDeConversao)}
+                          </td>
+                        </>
+                      )}
+                      <td className="px-4 py-2.5">
+                        <span className="flex items-center justify-end gap-1.5 tabular-nums">
+                          {linha.qualidadeMedia.valor === null
+                            ? "—"
+                            : formatarInteiro(linha.qualidadeMedia.valor)}
+                          <SeloDeOrigem
+                            origem={linha.qualidadeMedia.origem}
+                            confianca={linha.qualidadeMedia.confianca}
+                            justificativa={linha.qualidadeMedia.justificativa}
+                            compacto
+                          />
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </CardConteudo>
     </Card>

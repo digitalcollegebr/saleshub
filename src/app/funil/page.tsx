@@ -46,12 +46,12 @@ function ConteudoDoPainel() {
         <EstadoDeErro erro={painel.error} aoTentarNovamente={() => painel.refetch()} />
       ) : painel.isPending ? (
         <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <EsqueletoDeCartao key={i} altura="h-[7.5rem]" />
             ))}
           </div>
-          <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
+          <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
             <EsqueletoDeCartao altura="h-[28rem]" />
             <EsqueletoDeCartao altura="h-[28rem]" />
           </div>
@@ -81,7 +81,7 @@ function ConteudoDoPainel() {
       ) : (
         <>
           <section aria-label="Indicadores do período">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {painel.data.indicadores.map((indicador) => (
                 <CartaoIndicador
                   key={indicador.chave}
@@ -103,7 +103,7 @@ function ConteudoDoPainel() {
             hrefDoIndicador={linkParaConversas}
           />
 
-          <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
+          <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
             <FunilDeConversas
               etapas={painel.data.funil}
               hrefDaEtapa={(chave) => linkParaConversas({ etapa: chave })}
@@ -111,7 +111,7 @@ function ConteudoDoPainel() {
             <GraficoDeVolume serie={painel.data.serieDeVolume} />
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <GraficoDeDistribuicao
               titulo="Principais objeções"
               descricao="Resistências identificadas pela análise. O percentual é a fatia de cada motivo entre as objeções registradas."
@@ -139,7 +139,7 @@ function ConteudoDoPainel() {
 
           <RankingDeAtendentes linhas={painel.data.ranking} />
 
-          <div className="grid gap-4 xl:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-2">
             {atencao.isError ? (
               <EstadoDeErro erro={atencao.error} aoTentarNovamente={() => atencao.refetch()} />
             ) : atencao.isPending ? (

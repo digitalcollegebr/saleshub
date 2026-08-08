@@ -60,7 +60,40 @@ function Conteudo() {
         <>
           <Card>
             <CardConteudo className="p-0">
-              <div className="overflow-x-auto">
+              {/* Abaixo de `md` a tabela vira lista de cartões. Com seis colunas
+                  em 390px sobrava espaço para duas, e as outras quatro exigiam
+                  arrastar de lado — um gesto que ninguém tenta numa lista. */}
+              <ul className="divide-borda divide-y md:hidden">
+                {consulta.data.itens.map((c) => (
+                  <li key={c.id}>
+                    <Link href={`/conversas/${c.id}`} className="hover:bg-fundo-sutil block p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="text-texto font-medium">{c.leadNome || "Sem nome"}</span>
+                        <span className="text-texto-fraco shrink-0 text-[11px] whitespace-nowrap">
+                          {formatarDataHora(c.iniciadaEm)}
+                        </span>
+                      </div>
+                      <p className="text-texto-fraco mt-1 flex items-center gap-1.5 text-xs">
+                        <span>{c.etapaDoFunil?.valor ?? "não classificada"}</span>
+                        {c.etapaDoFunil && (
+                          <SeloDeOrigem
+                            origem={c.etapaDoFunil.origem}
+                            confianca={c.etapaDoFunil.confianca}
+                            compacto
+                          />
+                        )}
+                      </p>
+                      <p className="text-texto-fraco mt-1.5 text-[11px]">
+                        {c.atendenteNome ?? "Sem atendente"} · {formatarInteiro(c.totalDeMensagens)}{" "}
+                        mensagens · 1ª resposta{" "}
+                        {formatarDuracao(c.tempoAtePrimeiraRespostaSegundos)}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="hidden overflow-x-auto md:block">
                 <table className="w-full text-sm">
                   <thead className="text-texto-fraco border-borda border-b text-[11px] uppercase">
                     <tr>

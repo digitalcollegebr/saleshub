@@ -62,12 +62,12 @@ export function PainelOperacional({ titulo, descricao }: { titulo: string; descr
         <EstadoDeErro erro={painel.error} aoTentarNovamente={() => painel.refetch()} />
       ) : painel.isPending ? (
         <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <EsqueletoDeCartao key={i} altura="h-[7.5rem]" />
             ))}
           </div>
-          <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
+          <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
             <EsqueletoDeCartao altura="h-[22rem]" />
             <EsqueletoDeCartao altura="h-[22rem]" />
           </div>
@@ -97,7 +97,7 @@ export function PainelOperacional({ titulo, descricao }: { titulo: string; descr
       ) : (
         <>
           <section aria-label="Indicadores do período">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {painel.data.indicadores
                 .filter((i) => INDICADORES_DE_ATENDIMENTO.includes(i.chave))
                 .map((indicador) => (
@@ -106,7 +106,7 @@ export function PainelOperacional({ titulo, descricao }: { titulo: string; descr
             </div>
           </section>
 
-          <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
+          <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
             <GraficoDeVolume serie={painel.data.serieDeVolume} sinaisComerciais={false} />
             <GraficoDeDistribuicao
               titulo="Sentimento do contato"
