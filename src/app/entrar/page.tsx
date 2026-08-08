@@ -11,7 +11,7 @@
  * entrar. O formulário local é um POST HTML puro.
  */
 
-import { adminLocalConfigurado } from "@/lib/acesso";
+import { DOMINIOS_PERMITIDOS, adminLocalConfigurado } from "@/lib/acesso";
 import { sessaoConfigurada } from "@/lib/sessao";
 import { googleConfigurado } from "@/lib/google";
 import { SimboloDaMarca } from "@/components/layout/marca";
@@ -104,7 +104,7 @@ export default async function PaginaDeEntrada({
         )}
 
         <p className="text-texto-fraco mt-3 text-center text-[11px]">
-          Somente contas @{process.env.DOMINIO_PERMITIDO ?? "digitalcollege.com.br"}
+          Somente contas {DOMINIOS_PERMITIDOS.map((dominio) => `@${dominio}`).join(" ou ")}
         </p>
 
         {adminLocalConfigurado() && (

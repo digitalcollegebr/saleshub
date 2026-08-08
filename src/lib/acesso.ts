@@ -8,9 +8,31 @@ import "server-only";
  * coletor. Este arquivo responde só "esta conta é do domínio?".
  */
 
-export const DOMINIO_PERMITIDO = (
-  process.env.DOMINIO_PERMITIDO ?? "digitalcollege.com.br"
-).toLowerCase();
+/**
+ * Os domínios que entram, separados por vírgula em `DOMINIOS_PERMITIDOS`.
+ *
+ * Lista, e não um valor só, porque a operação passou a envolver mais de uma
+ * empresa. `DOMINIO_PERMITIDO` no singular ainda é lido: quem já tinha a antiga
+ * definida não perde o acesso num deploy, que é o jeito de a mudança não
+ * derrubar ninguém sem aviso.
+ *
+ * Cada domínio precisa ser um Google Workspace de verdade. A conferência é feita
+ * na claim `hd` do ID token, e `hd` só existe em conta Workspace — domínio que
+ * seja só um Gmail com endereço bonito não tem o campo e é recusado, esteja ou
+ * não nesta lista.
+ */
+export const DOMINIOS_PERMITIDOS: readonly string[] = (
+  process.env.DOMINIOS_PERMITIDOS ??
+  process.env.DOMINIO_PERMITIDO ??
+  "digitalcollege.com.br"
+)
+  .split(",")
+  .map((dominio) => dominio.trim().toLowerCase())
+  .filter(Boolean);
+
+export function dominioPermitido(dominio: string): boolean {
+  return DOMINIOS_PERMITIDOS.includes(dominio.trim().toLowerCase());
+}
 
 /**
  * O administrador local — a saída de emergência.

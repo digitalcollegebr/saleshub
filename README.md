@@ -142,8 +142,10 @@ URL indexada circula e sair do índice depois dá mais trabalho que nunca entrar
 
 ## Autenticação
 
-Entrada pelo **Google Workspace**, restrita ao domínio `digitalcollege.com.br`,
-mais **um** usuário local para quando o Google estiver indisponível.
+Entrada pelo **Google Workspace**, restrita aos domínios de
+`DOMINIOS_PERMITIDOS` (hoje `digitalcollege.com.br` e
+`engajacomunicacao.com.br`), mais **um** usuário local para quando o Google
+estiver indisponível.
 
 `src/proxy.ts` é a tranca: roda antes de toda rota, e só `/entrar`, `/api/auth/*`
 e `/api/saude` passam sem sessão — o healthcheck precisa responder, senão o
@@ -162,7 +164,7 @@ renomeado. Ele roda no runtime do Node, o que permite `node:crypto`.
 | `URL_PUBLICA` | `https://saleshub.digitalcollege.com.br`. Atrás do Traefik, o host que o Next enxerga é o interno — daí não dar para derivar do pedido. |
 | `ADMIN_EMAIL` | e-mail do usuário local |
 | `ADMIN_SENHA_HASH` | `sal:hash` em hex, gerado abaixo |
-| `DOMINIO_PERMITIDO` | opcional. Padrão `digitalcollege.com.br` |
+| `DOMINIOS_PERMITIDOS` | opcional: separados por vírgula. Padrão `digitalcollege.com.br`. Cada um precisa ser um Workspace — `hd` não existe em conta pessoal |
 
 Permissão **não** é variável de ambiente: são quatro caixas — comercial,
 cobrança, atendimento, administrador — marcadas em **Usuários** pelo
@@ -188,8 +190,14 @@ node -e "const c=require('node:crypto');const s=c.randomBytes(16).toString('hex'
 
 `iss`, `aud`, `exp`, `nonce`, `email_verified` e o `hd` — a claim de domínio, que
 só existe em conta Workspace. Conta `@gmail.com` não tem o campo e é recusada
-ali. O parâmetro `hd` na URL de autorização é conveniência de tela, **não**
-segurança: ele viaja pelo navegador e pode ser trocado.
+ali. Com mais de um domínio permitido, `hd` e o e-mail são conferidos
+separadamente contra a lista: são campos que podem discordar, porque `hd` traz o
+domínio primário do Workspace e o endereço pode estar num alias.
+
+O parâmetro `hd` na URL de autorização é conveniência de tela, **não**
+segurança: ele viaja pelo navegador e pode ser trocado. Com vários domínios ele
+vira `*` — o Google aceita um valor só, e escolher um esconderia o outro da tela
+sem recusá-lo de fato.
 
 A assinatura do ID token não é verificada, e isso é deliberado: o token não passa
 pelo navegador, é buscado por este servidor no endpoint do Google sobre TLS. O

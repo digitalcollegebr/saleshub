@@ -22,7 +22,7 @@ import "server-only";
  * e está feito abaixo — é conferir `iss`, `aud`, `exp`, `nonce` e `hd`.
  */
 
-import { DOMINIO_PERMITIDO } from "./acesso";
+import { DOMINIOS_PERMITIDOS, dominioPermitido } from "./acesso";
 
 const AUTORIZACAO = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN = "https://oauth2.googleapis.com/token";
@@ -61,7 +61,11 @@ export function urlDeAutorizacao(opcoes: {
   // `hd` faz o Google já mostrar só contas do domínio. É conveniência de tela,
   // NÃO segurança: o parâmetro viaja pelo navegador e pode ser trocado. Quem
   // decide é a conferência do `hd` no token, abaixo.
-  url.searchParams.set("hd", DOMINIO_PERMITIDO);
+  //
+  // O Google aceita um domínio só aqui. Com mais de um, `*` é o mais próximo
+  // disso — filtra para qualquer conta Workspace, deixando as pessoais de fora.
+  // Escolher um dos dois esconderia o outro na tela sem recusá-lo de fato.
+  url.searchParams.set("hd", DOMINIOS_PERMITIDOS.length === 1 ? DOMINIOS_PERMITIDOS[0] : "*");
   // Sem isto, quem tem várias contas Google entra direto na última usada e não
   // entende por que o acesso foi negado.
   url.searchParams.set("prompt", "select_account");
@@ -130,8 +134,13 @@ export async function identidadeDoCodigo(opcoes: {
   if (dados.email_verified !== true) return null;
   // A tranca do domínio. `hd` só existe em conta Workspace — conta pessoal
   // @gmail.com não tem o campo e cai aqui.
-  if (dominio !== DOMINIO_PERMITIDO) return null;
-  if (!email.endsWith(`@${DOMINIO_PERMITIDO}`)) return null;
+  //
+  // As duas conferências existem porque `hd` e o e-mail podem discordar: `hd` é
+  // o domínio primário do Workspace, e o endereço pode estar num domínio alias.
+  // Exigir que ambos estejam na lista cobre o alias sem aceitar qualquer conta
+  // de um Workspace que por acaso tenha o domínio certo como primário.
+  if (!dominioPermitido(dominio)) return null;
+  if (!DOMINIOS_PERMITIDOS.some((permitido) => email.endsWith(`@${permitido}`))) return null;
 
   return {
     sub: String(dados.sub ?? email),
