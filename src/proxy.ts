@@ -18,6 +18,7 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { COOKIE_DA_SESSAO, ler } from "@/lib/sessao";
+import { urlDoApp } from "@/lib/url";
 
 /**
  * O que passa sem sessão.
@@ -53,7 +54,7 @@ export function proxy(pedido: NextRequest) {
 
   // `destino` para voltar ao lugar certo depois do login: quem recebeu um link
   // do painel de cobrança não quer cair no funil.
-  const login = new URL("/entrar", pedido.url);
+  const login = urlDoApp("/entrar", pedido);
   if (pathname !== "/") login.searchParams.set("destino", pathname + pedido.nextUrl.search);
   return NextResponse.redirect(login);
 }

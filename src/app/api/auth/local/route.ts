@@ -15,6 +15,7 @@ import { scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { adminLocalConfigurado } from "@/lib/acesso";
 import { COOKIE_DA_SESSAO, atributosDoCookie, emitir } from "@/lib/sessao";
+import { urlDoApp } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +45,7 @@ async function senhaConfere(senha: string): Promise<boolean> {
 
 export async function POST(pedido: Request) {
   const recusa = () =>
-    NextResponse.redirect(new URL("/entrar?erro=credenciais", pedido.url), { status: 303 });
+    NextResponse.redirect(urlDoApp("/entrar?erro=credenciais", pedido), { status: 303 });
 
   if (!adminLocalConfigurado()) return recusa();
 
@@ -67,7 +68,7 @@ export async function POST(pedido: Request) {
     via: "local",
   });
 
-  const resposta = NextResponse.redirect(new URL("/funil", pedido.url), { status: 303 });
+  const resposta = NextResponse.redirect(urlDoApp("/funil", pedido), { status: 303 });
   resposta.cookies.set(COOKIE_DA_SESSAO, valor, atributosDoCookie(maxAge));
   return resposta;
 }

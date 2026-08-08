@@ -2,11 +2,12 @@
 
 import { NextResponse } from "next/server";
 import { COOKIE_DA_SESSAO } from "@/lib/sessao";
+import { urlDoApp } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
 
 export function POST(pedido: Request) {
-  const resposta = NextResponse.redirect(new URL("/entrar", pedido.url), { status: 303 });
+  const resposta = NextResponse.redirect(urlDoApp("/entrar", pedido), { status: 303 });
   resposta.cookies.delete(COOKIE_DA_SESSAO);
   return resposta;
 }

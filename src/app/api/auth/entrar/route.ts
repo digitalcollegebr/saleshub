@@ -10,6 +10,7 @@
 import { NextResponse } from "next/server";
 import { googleConfigurado, urlDeAutorizacao, urlDeRetorno } from "@/lib/google";
 import { aleatorio } from "@/lib/sessao";
+import { urlDoApp } from "@/lib/url";
 import { createHash } from "node:crypto";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ const VALIDADE = 600;
 
 export function GET(pedido: Request) {
   if (!googleConfigurado()) {
-    return NextResponse.redirect(new URL("/entrar?erro=google_indisponivel", pedido.url));
+    return NextResponse.redirect(urlDoApp("/entrar?erro=google_indisponivel", pedido));
   }
 
   const destino = new URL(pedido.url).searchParams.get("destino") ?? "";

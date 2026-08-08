@@ -23,6 +23,7 @@ import "server-only";
  */
 
 import { DOMINIOS_PERMITIDOS, dominioPermitido } from "./acesso";
+import { baseDaAplicacao } from "./url";
 
 const AUTORIZACAO = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN = "https://oauth2.googleapis.com/token";
@@ -39,8 +40,7 @@ export function googleConfigurado(): boolean {
  * porque atrás do Traefik o host que o Next enxerga pode ser o interno.
  */
 export function urlDeRetorno(pedido: Request): string {
-  const base = process.env.URL_PUBLICA?.replace(/\/$/, "") ?? new URL(pedido.url).origin;
-  return `${base}/api/auth/retorno`;
+  return `${baseDaAplicacao(pedido)}/api/auth/retorno`;
 }
 
 export function urlDeAutorizacao(opcoes: {

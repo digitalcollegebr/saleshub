@@ -10,11 +10,12 @@
 import { NextResponse } from "next/server";
 import { identidadeDoCodigo, urlDeRetorno } from "@/lib/google";
 import { COOKIE_DA_SESSAO, atributosDoCookie, emitir } from "@/lib/sessao";
+import { urlDoApp } from "@/lib/url";
 
 export const dynamic = "force-dynamic";
 
 function recusar(pedido: Request, motivo: string) {
-  const resposta = NextResponse.redirect(new URL(`/entrar?erro=${motivo}`, pedido.url));
+  const resposta = NextResponse.redirect(urlDoApp(`/entrar?erro=${motivo}`, pedido));
   for (const c of ["saleshub_state", "saleshub_nonce", "saleshub_pkce", "saleshub_destino"]) {
     resposta.cookies.delete(c);
   }
@@ -60,9 +61,9 @@ export async function GET(pedido: Request) {
   });
 
   const guardado = enviados.get("saleshub_destino") ?? "";
-  const destino = new URL(
+  const destino = urlDoApp(
     guardado.startsWith("/") && !guardado.startsWith("//") ? guardado : "/funil",
-    pedido.url,
+    pedido,
   );
   const resposta = NextResponse.redirect(destino);
   resposta.cookies.set(COOKIE_DA_SESSAO, valor, atributosDoCookie(maxAge));
