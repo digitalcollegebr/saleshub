@@ -19,6 +19,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { COOKIE_DA_SESSAO, ler } from "@/lib/sessao";
 import { urlDoApp } from "@/lib/url";
+import { ehCaminhoDoQuiosque } from "@/lib/quiosque";
 
 /**
  * O que passa sem sessão.
@@ -40,6 +41,12 @@ export function proxy(pedido: NextRequest) {
   const { pathname } = pedido.nextUrl;
 
   if (ABERTAS.some((prefixo) => pathname === prefixo || pathname.startsWith(prefixo))) {
+    return NextResponse.next();
+  }
+
+  // O pedido de dados da TV. A conferência de verdade acontece no proxy de
+  // dados; aqui é só não matá-lo antes de chegar lá.
+  if (ehCaminhoDoQuiosque(pathname, pedido.nextUrl.searchParams, pedido.method)) {
     return NextResponse.next();
   }
 
