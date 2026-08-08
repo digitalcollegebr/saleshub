@@ -47,7 +47,13 @@ export function EstadoDeErro({
         <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
         <div>
           <p className="font-medium">{mensagem}</p>
-          {daApi?.detalhe && <p className="mt-1 font-mono text-xs opacity-70">{daApi.detalhe}</p>}
+          {/* O corpo cru da resposta só aparece quando ajuda a agir: em 404 ele
+              era `{"detail":"Not Found"}` na cara do usuário — ruído técnico que
+              não diz nada a quem clicou num link velho. Continua no `ErroDaApi`
+              para quem abrir o console. */}
+          {daApi?.detalhe && daApi.categoria !== "nao_encontrado" && (
+            <p className="mt-1 font-mono text-xs opacity-70">{daApi.detalhe}</p>
+          )}
         </div>
       </div>
       {podeRepetir && aoTentarNovamente && (

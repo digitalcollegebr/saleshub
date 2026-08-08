@@ -77,9 +77,12 @@ export function formatarValorMencionado(valor: number): string {
 }
 
 export function formatarPorFormato(
-  valor: number,
+  valor: number | null | undefined,
   formato: "inteiro" | "percentual" | "duracao_segundos" | "decimal",
 ): string {
+  // Travessão, não "0": ausência de medida e medida igual a zero são coisas
+  // diferentes, e a tela é o último lugar onde elas podem ser confundidas.
+  if (valor === null || valor === undefined) return "—";
   switch (formato) {
     case "percentual":
       return formatarPercentual(valor);

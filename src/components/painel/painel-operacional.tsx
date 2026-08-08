@@ -45,7 +45,7 @@ import { formatarDataHora } from "@/lib/format";
 const INDICADORES_DE_ATENDIMENTO = ["conversas", "primeira_resposta", "sem_resposta", "qualidade"];
 
 export function PainelOperacional({ titulo, descricao }: { titulo: string; descricao: string }) {
-  const { filtros, limpar, quantidadeAtiva } = useFiltros();
+  const { filtros, limpar, quantidadeAtiva, periodoInvertido } = useFiltros();
   const painel = usePainelDoFunil(filtros);
   const atencao = useConversasComAtencao(filtros);
 
@@ -76,9 +76,11 @@ export function PainelOperacional({ titulo, descricao }: { titulo: string; descr
         <EstadoVazio
           titulo="Nenhuma conversa desta área no recorte"
           descricao={
-            quantidadeAtiva > 0
-              ? "Os filtros aplicados não retornaram conversas desta área. Isso não significa ausência de atendimento — significa que este corte está vazio."
-              : "Não há conversas classificadas nesta área no período selecionado. Conversas ainda não reclassificadas contam como não identificadas e não aparecem aqui."
+            periodoInvertido
+              ? "A data final é anterior à inicial. Corrija o intervalo — não há janela para consultar."
+              : quantidadeAtiva > 0
+                ? "Os filtros aplicados não retornaram conversas desta área. Isso não significa ausência de atendimento — significa que este corte está vazio."
+                : "Não há conversas classificadas nesta área no período selecionado. Conversas ainda não reclassificadas contam como não identificadas e não aparecem aqui."
           }
           acao={
             quantidadeAtiva > 0 ? (

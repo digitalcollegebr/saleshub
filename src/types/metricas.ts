@@ -13,7 +13,12 @@ export type ClasseDeMetrica = "medida" | "inferida";
 export interface Indicador {
   readonly chave: string;
   readonly rotulo: string;
-  readonly valor: number;
+  /**
+   * Nulo quando não houve o que medir — diferente de zero, que é uma medida.
+   * "Qualidade média 0,0" num período sem conversa avaliável afirma um
+   * atendimento péssimo onde não houve avaliação nenhuma.
+   */
+  readonly valor: number | null;
   readonly formato: "inteiro" | "percentual" | "duracao_segundos" | "decimal";
   readonly classe: ClasseDeMetrica;
   /** Contexto para o tooltip: o que este número significa e o que ele NÃO diz. */
@@ -87,7 +92,8 @@ export interface LinhaDoRanking {
   readonly tempoMedioPrimeiraRespostaSegundos: number | null;
   readonly comProximoPasso: number;
   readonly comIndicioDeConversao: number;
-  readonly qualidadeMedia: Classificado<number>;
+  /** Valor nulo = nenhuma conversa deste atendente tinha o que avaliar. */
+  readonly qualidadeMedia: Classificado<number | null>;
 }
 
 export interface OportunidadeEmAberto {

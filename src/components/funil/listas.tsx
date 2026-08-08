@@ -239,7 +239,9 @@ export function RankingDeAtendentes({
                     )}
                     <td className="px-4 py-2.5">
                       <span className="flex items-center justify-end gap-1.5 tabular-nums">
-                        {formatarInteiro(linha.qualidadeMedia.valor)}
+                        {linha.qualidadeMedia.valor === null
+                          ? "—"
+                          : formatarInteiro(linha.qualidadeMedia.valor)}
                         <SeloDeOrigem
                           origem={linha.qualidadeMedia.origem}
                           confianca={linha.qualidadeMedia.confianca}

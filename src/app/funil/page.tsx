@@ -32,7 +32,7 @@ import { MARCA } from "@/lib/brand";
 import { formatarDataHora } from "@/lib/format";
 
 function ConteudoDoPainel() {
-  const { filtros, limpar, linkParaConversas, quantidadeAtiva } = useFiltros();
+  const { filtros, limpar, linkParaConversas, quantidadeAtiva, periodoInvertido } = useFiltros();
   const painel = usePainelDoFunil(filtros);
   const atencao = useConversasComAtencao(filtros);
   const oportunidades = useOportunidades(filtros);
@@ -59,9 +59,11 @@ function ConteudoDoPainel() {
         <EstadoVazio
           titulo="Nenhuma conversa neste recorte"
           descricao={
-            quantidadeAtiva > 0
-              ? "Os filtros aplicados não retornaram conversas. Isso não significa ausência de atendimento — significa que este corte está vazio."
-              : "Não há conversas registradas no período selecionado. Amplie o intervalo de datas."
+            periodoInvertido
+              ? "A data final é anterior à inicial. Corrija o intervalo — não há janela para consultar."
+              : quantidadeAtiva > 0
+                ? "Os filtros aplicados não retornaram conversas. Isso não significa ausência de atendimento — significa que este corte está vazio."
+                : "Não há conversas registradas no período selecionado. Amplie o intervalo de datas."
           }
           acao={
             quantidadeAtiva > 0 ? (

@@ -1,13 +1,15 @@
 /**
  * Tratamento centralizado de erro.
  *
- * A interface precisa distinguir três situações que exigem respostas diferentes:
- * o servidor recusou (o usuário pode agir), a rede falhou (tentar de novo resolve)
- * e a resposta veio num formato inesperado (o usuário não tem o que fazer, mas
- * merece saber). Um `Error` genérico obriga cada tela a adivinhar isso.
+ * A interface precisa distinguir situações que exigem respostas diferentes: a rede
+ * falhou (tentar de novo resolve), o servidor recusou, a sessão caiu, o perfil não
+ * alcança, o recurso não existe (tentar de novo nunca vai resolver) e a resposta
+ * veio num formato inesperado. Um `Error` genérico obriga cada tela a adivinhar
+ * isso — e a errar, como quando 404 virava "o servidor não conseguiu responder".
  */
 
-export type CategoriaDeErro = "rede" | "autenticacao" | "permissao" | "servidor" | "formato";
+export type CategoriaDeErro =
+  "rede" | "autenticacao" | "permissao" | "nao_encontrado" | "servidor" | "formato";
 
 export class ErroDaApi extends Error {
   readonly categoria: CategoriaDeErro;
@@ -35,6 +37,8 @@ export class ErroDaApi extends Error {
         return "Sua sessão expirou. Entre novamente para continuar.";
       case "permissao":
         return "Seu perfil não tem acesso a estes dados.";
+      case "nao_encontrado":
+        return "Esta conversa não existe ou não está mais disponível.";
       case "formato":
         return "O servidor respondeu num formato inesperado. Avise o time técnico.";
       default:
@@ -51,6 +55,10 @@ export class ErroDaApi extends Error {
 export function categoriaPorStatus(status: number): CategoriaDeErro {
   if (status === 401) return "autenticacao";
   if (status === 403) return "permissao";
+  // 404 caía em "servidor", e o resultado era uma tela dizendo que o servidor
+  // falhou, com um botão "Tentar novamente" que nunca ia funcionar — link velho
+  // ou id digitado errado viravam suspeita de incidente.
+  if (status === 404) return "nao_encontrado";
   return "servidor";
 }
 

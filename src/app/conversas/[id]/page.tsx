@@ -97,7 +97,21 @@ export default function PaginaDaConversa({ params }: { params: Promise<{ id: str
   const consulta = useConversa(id);
 
   if (consulta.isError) {
-    return <EstadoDeErro erro={consulta.error} aoTentarNovamente={() => consulta.refetch()} />;
+    // Erro sem saída é beco: numa conversa que não existe, "Tentar novamente" não
+    // resolve e o único caminho útil é voltar para a lista. O botão de repetir
+    // continua aparecendo quando repetir adianta — quem decide é o `ErroDaApi`.
+    return (
+      <div className="space-y-3">
+        <EstadoDeErro erro={consulta.error} aoTentarNovamente={() => consulta.refetch()} />
+        <Link
+          href="/conversas"
+          className="border-borda text-texto-fraco hover:bg-fundo-sutil inline-flex h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden="true" />
+          Voltar para as conversas
+        </Link>
+      </div>
+    );
   }
   if (consulta.isPending) return <EsqueletoDeBloco linhas={10} />;
 

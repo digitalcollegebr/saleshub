@@ -31,7 +31,8 @@ function comoDataLocal(iso: string): string {
  * dele; é o mesmo motivo por que unidade e campanha somem quando vêm vazias.
  */
 export function BarraDeFiltros({ recortesComerciais = true }: { recortesComerciais?: boolean }) {
-  const { filtros, definir, definirVarios, limpar, quantidadeAtiva } = useFiltros();
+  const { filtros, definir, definirVarios, limpar, quantidadeAtiva, periodoInvertido } =
+    useFiltros();
   const { data: opcoes, isPending } = useOpcoesDeFiltro();
 
   function aplicarPeriodo(chave: ChaveDePeriodo) {
@@ -115,6 +116,11 @@ export function BarraDeFiltros({ recortesComerciais = true }: { recortesComercia
             </button>
           ))}
         </div>
+        {periodoInvertido && (
+          <p role="alert" className="text-[11px] text-red-700 dark:text-red-300">
+            A data final é anterior à inicial — nenhum recorte cabe aí.
+          </p>
+        )}
       </fieldset>
 
       {/* Datas sempre visíveis, não escondidas atrás de um botão "personalizado":
@@ -129,6 +135,7 @@ export function BarraDeFiltros({ recortesComerciais = true }: { recortesComercia
           <input
             type="date"
             aria-label="Data inicial"
+            aria-invalid={periodoInvertido}
             value={comoDataLocal(filtros.periodoInicio)}
             max={comoDataLocal(filtros.periodoFim)}
             onChange={(e) => aplicarData("de", e.target.value)}
@@ -138,6 +145,7 @@ export function BarraDeFiltros({ recortesComerciais = true }: { recortesComercia
           <input
             type="date"
             aria-label="Data final"
+            aria-invalid={periodoInvertido}
             value={comoDataLocal(filtros.periodoFim)}
             min={comoDataLocal(filtros.periodoInicio)}
             onChange={(e) => aplicarData("ate", e.target.value)}

@@ -155,6 +155,15 @@ export function useFiltros() {
     [parametros],
   );
 
+  /**
+   * Fim antes do início. O seletor nativo previne (os inputs têm `min`/`max`),
+   * mas URL compartilhada, data digitada à mão e link velho ainda chegam assim —
+   * e o resultado era a tela dizendo "amplie o intervalo de datas", conselho que
+   * não conserta nada porque o problema não é o tamanho da janela.
+   */
+  const periodoInvertido =
+    new Date(filtros.periodoFim).getTime() < new Date(filtros.periodoInicio).getTime();
+
   const quantidadeAtiva = [
     filtros.unidadeId,
     filtros.equipeId,
@@ -168,5 +177,13 @@ export function useFiltros() {
     // que o botão não desfaz.
   ].filter(Boolean).length;
 
-  return { filtros, definir, definirVarios, limpar, linkParaConversas, quantidadeAtiva };
+  return {
+    filtros,
+    definir,
+    definirVarios,
+    limpar,
+    linkParaConversas,
+    quantidadeAtiva,
+    periodoInvertido,
+  };
 }
