@@ -140,6 +140,16 @@ export interface MetricasDaConversa {
 
 /** Análise produzida sobre a transcrição. Tudo aqui é leitura, não registro. */
 export interface AnaliseDaConversa {
+  /**
+   * Qual operação atendeu: `comercial`, `cobranca`, `atendimento_ao_aluno` ou
+   * `nao_identificado`. O SZ Chat é compartilhado pelas três áreas, e sem isto o
+   * funil comercial contava conversa de cobrança no próprio denominador.
+   *
+   * Sai da mesma leitura de IA que o resto — por isso é `Classificado`, e por isso
+   * a origem é `inferido`. Abaixo da confiança mínima do coletor o valor já chega
+   * como `nao_identificado`: preferir uma fatia auditável a contaminar a área.
+   */
+  readonly departamento: Classificado<string>;
   readonly resumo: Classificado<string>;
   readonly assuntoPrincipal: Classificado<string>;
   readonly cursoDeInteresseId: Classificado<string | null>;

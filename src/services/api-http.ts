@@ -33,6 +33,7 @@ function comoBusca(filtros: FiltrosDoPainel): Record<string, string | undefined>
     canal: filtros.canal,
     curso_id: filtros.cursoId,
     etapa: filtros.etapaDoFunil,
+    departamento: filtros.departamento,
   };
 }
 

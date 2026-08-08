@@ -74,6 +74,7 @@ function aplicarFiltros(filtros: FiltrosDoPainel): ConversaGerada[] {
     if (filtros.canal && c.canal !== filtros.canal) return false;
     if (filtros.cursoId && c.analise.cursoDeInteresseId.valor !== filtros.cursoId) return false;
     if (filtros.etapaDoFunil && c.analise.etapaDoFunil.valor !== filtros.etapaDoFunil) return false;
+    if (filtros.departamento && c.analise.departamento.valor !== filtros.departamento) return false;
     return true;
   });
 }

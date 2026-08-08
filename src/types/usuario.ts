@@ -23,13 +23,28 @@ export const ROTULO_PERFIL: Record<PerfilDeAcesso, string> = {
 };
 
 /** Áreas da aplicação, para o menu e para o controle de acesso futuro. */
-export type AreaDaAplicacao = "funil" | "conversas" | "marketing" | "qualidade" | "configuracoes";
+export type AreaDaAplicacao =
+  "funil" | "cobranca" | "atendimento" | "conversas" | "marketing" | "qualidade" | "configuracoes";
 
+/**
+ * Cobrança e atendimento ao aluno ficam **fora** de `gestor_de_vendas` e de
+ * `gestor_de_marketing` de propósito: separar as operações no dado e depois
+ * mostrar as três a todo mundo desfaria metade do ponto. Diretoria vê tudo porque
+ * a leitura dela é da operação inteira.
+ */
 const ACESSO_POR_PERFIL: Record<PerfilDeAcesso, readonly AreaDaAplicacao[]> = {
-  diretor: ["funil", "conversas", "marketing", "qualidade"],
+  diretor: ["funil", "cobranca", "atendimento", "conversas", "marketing", "qualidade"],
   gestor_de_vendas: ["funil", "conversas", "qualidade"],
   gestor_de_marketing: ["funil", "conversas", "marketing"],
-  administrador: ["funil", "conversas", "marketing", "qualidade", "configuracoes"],
+  administrador: [
+    "funil",
+    "cobranca",
+    "atendimento",
+    "conversas",
+    "marketing",
+    "qualidade",
+    "configuracoes",
+  ],
 };
 
 export function podeVer(perfil: PerfilDeAcesso, area: AreaDaAplicacao): boolean {

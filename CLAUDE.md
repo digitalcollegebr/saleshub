@@ -141,12 +141,24 @@ foto por foto já produziu "152%". Etapas terminais (`terminal: true`) ficam for
 progressão, em bloco separado; somá-las produz taxa de conversão sem significado.
 `DECISOES.md` §2 e §3.
 
+**Departamento não é filtro da barra, é a identidade da página.** Cada conversa
+carrega a área que a atendeu (`comercial`, `cobranca`, `atendimento_ao_aluno`,
+`nao_identificado`), classificada pela IA do coletor. `/cobranca` e `/atendimento`
+fixam a sua área via `<ProvedorDeDepartamento>` (`src/hooks/use-departamento.tsx`),
+que `useFiltros` lê e injeta em `FiltrosDoPainel` — daí ele segue as **mesmas três
+grafias** dos outros filtros. Não vai para a query string de propósito: apagar o
+parâmetro mostraria dados comerciais na tela de cobrança. `/funil` fica sem
+departamento; quem decide se o comercial se restringe é
+`FILTRAR_COMERCIAL_POR_DEPARTAMENTO`, **no coletor**, porque o BI lê o mesmo banco.
+`DECISOES.md` §14.
+
 **Etapas do funil são configuração, não `enum`** — vêm da API com chave estável,
 rótulo, ordem, cor e a marca `terminal`. A taxonomia evolui com o modelo de análise
 e não pode exigir deploy do frontend.
 
 **Estado dos filtros vive na URL** (`src/hooks/use-filtros.ts`, query string
-`?de=…&ate=…&unidade=…&equipe=…&atendente=…&campanha=…&canal=…&curso=…&etapa=…`). O recorte de um painel é um link compartilhável; F5 e
+`?de=…&ate=…&unidade=…&equipe=…&atendente=…&campanha=…&canal=…&curso=…&etapa=…`
+— sem `departamento`, que vem da página). O recorte de um painel é um link compartilhável; F5 e
 voltar/avançar funcionam. Custo aceito: `useSearchParams` exige limite de `Suspense`
 na página.
 

@@ -119,6 +119,7 @@ function filtrosDaBusca(busca: URLSearchParams): FiltrosDoPainel {
     canal: busca.get("canal") ?? undefined,
     cursoId: busca.get("curso_id") ?? undefined,
     etapaDoFunil: busca.get("etapa") ?? undefined,
+    departamento: busca.get("departamento") ?? undefined,
   };
 }
 

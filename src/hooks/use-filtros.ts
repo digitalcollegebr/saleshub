@@ -11,6 +11,7 @@
 import { useCallback, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FiltrosDoPainel } from "@/types";
+import { useDepartamento } from "./use-departamento";
 
 /**
  * Períodos de calendário, não janelas móveis.
@@ -93,6 +94,9 @@ export function useFiltros() {
   const parametros = useSearchParams();
   const router = useRouter();
   const caminho = usePathname();
+  // Vem da página, não da URL — ver use-departamento.tsx. Entra na `queryKey` dos
+  // hooks junto com o resto, então trocar de painel reconsulta sozinho.
+  const departamento = useDepartamento();
 
   const filtros = useMemo<FiltrosDoPainel>(() => {
     const padrao = periodoPadrao();
@@ -106,8 +110,9 @@ export function useFiltros() {
       canal: parametros.get("canal") ?? undefined,
       cursoId: parametros.get("curso") ?? undefined,
       etapaDoFunil: parametros.get("etapa") ?? undefined,
+      departamento,
     };
-  }, [parametros]);
+  }, [parametros, departamento]);
 
   /**
    * Altera vários parâmetros de uma vez.
@@ -158,6 +163,9 @@ export function useFiltros() {
     filtros.canal,
     filtros.cursoId,
     filtros.etapaDoFunil,
+    // `departamento` fica de fora: ele não é um filtro que o usuário aplicou, e
+    // contá-lo faria o estado vazio oferecer "limpar filtros" para uma escolha
+    // que o botão não desfaz.
   ].filter(Boolean).length;
 
   return { filtros, definir, definirVarios, limpar, linkParaConversas, quantidadeAtiva };

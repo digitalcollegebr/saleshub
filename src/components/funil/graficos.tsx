@@ -53,7 +53,19 @@ function CaixaDoTooltip({
   );
 }
 
-export function GraficoDeVolume({ serie }: { serie: readonly PontoDaSerie[] }) {
+/**
+ * `sinaisComerciais` desliga as duas séries que só descrevem venda — próximo passo
+ * e indício de conversão. Em cobrança e atendimento ao aluno elas não são zero:
+ * são pergunta errada. Uma linha "indício de conversão" num painel de cobrança
+ * convida a interpretação de que a régua comercial vale ali, e ela não vale.
+ */
+export function GraficoDeVolume({
+  serie,
+  sinaisComerciais = true,
+}: {
+  serie: readonly PontoDaSerie[];
+  sinaisComerciais?: boolean;
+}) {
   const temDado = serie.some((p) => p.conversas > 0);
 
   return (
@@ -62,7 +74,9 @@ export function GraficoDeVolume({ serie }: { serie: readonly PontoDaSerie[] }) {
         <div>
           <CardTitulo>Evolução do volume</CardTitulo>
           <CardDescricao>
-            Conversas iniciadas por dia e quantas registraram indício de conversão ou próximo passo.
+            {sinaisComerciais
+              ? "Conversas iniciadas por dia e quantas registraram indício de conversão ou próximo passo."
+              : "Conversas iniciadas por dia, pela data de início do atendimento."}
           </CardDescricao>
         </div>
       </CardCabecalho>
@@ -111,7 +125,7 @@ export function GraficoDeVolume({ serie }: { serie: readonly PontoDaSerie[] }) {
                   content={<CaixaDoTooltip />}
                   labelFormatter={(v) => formatarDiaMes(String(v))}
                 />
-                <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" />
+                {sinaisComerciais && <Legend wrapperStyle={{ fontSize: 11 }} iconType="circle" />}
                 <Area
                   type="monotone"
                   dataKey="conversas"
@@ -120,23 +134,27 @@ export function GraficoDeVolume({ serie }: { serie: readonly PontoDaSerie[] }) {
                   strokeWidth={2}
                   fill="url(#grad-conversas)"
                 />
-                <Area
-                  type="monotone"
-                  dataKey="comProximoPasso"
-                  name="Com próximo passo"
-                  stroke={MARCA.cores.acento}
-                  strokeWidth={1.5}
-                  fill="transparent"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="comIndicioDeConversao"
-                  name="Com indício de conversão"
-                  stroke={MARCA.serie[6]}
-                  strokeWidth={1.5}
-                  strokeDasharray="4 3"
-                  fill="transparent"
-                />
+                {sinaisComerciais && (
+                  <Area
+                    type="monotone"
+                    dataKey="comProximoPasso"
+                    name="Com próximo passo"
+                    stroke={MARCA.cores.acento}
+                    strokeWidth={1.5}
+                    fill="transparent"
+                  />
+                )}
+                {sinaisComerciais && (
+                  <Area
+                    type="monotone"
+                    dataKey="comIndicioDeConversao"
+                    name="Com indício de conversão"
+                    stroke={MARCA.serie[6]}
+                    strokeWidth={1.5}
+                    strokeDasharray="4 3"
+                    fill="transparent"
+                  />
+                )}
               </AreaChart>
             </ResponsiveContainer>
           </div>

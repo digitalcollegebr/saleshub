@@ -10,6 +10,13 @@ export interface FiltrosDoPainel {
   readonly canal?: string;
   readonly cursoId?: string;
   readonly etapaDoFunil?: string;
+  /**
+   * Área responsável pela conversa. Não vem da barra de filtros: é fixado pela
+   * página (`/funil` é comercial, `/cobranca` é cobrança) via
+   * `ContextoDeDepartamento`. Ausente significa "sem recorte", e quem decide se o
+   * painel comercial se restringe é a flag do coletor — ver `_condicoes` lá.
+   */
+  readonly departamento?: string;
 }
 
 export interface OpcoesDeFiltro {

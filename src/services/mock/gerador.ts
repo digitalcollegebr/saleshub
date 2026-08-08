@@ -219,6 +219,11 @@ function montarAnalise(etapaChave: string, cursoId: string, unidadeId: string): 
   const valorBase = escolher([349, 429, 489, 549, 620]);
 
   return {
+    // O conjunto de demonstração é comercial de ponta a ponta: ele existe para
+    // mostrar o painel de vendas sem coletor de pé. Fabricar cobrança e SAC aqui
+    // encheria as telas novas de conversa inventada — pior que mostrá-las vazias,
+    // porque número fictício com cara de real é o que se leva para a reunião.
+    departamento: inferido("comercial", confianca),
     resumo: inferido(
       inconclusiva
         ? "Conversa curta, sem informação suficiente para concluir o interesse do lead."

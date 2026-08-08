@@ -223,3 +223,62 @@ mesmo schema), ou se os dois passarem a mudar sempre juntos por meses seguidos.
 tipo: Python e TypeScript não se falam. A mitigação é o alinhamento explícito do
 mock com a API real (decisão 5) e a rota `/api/dados/estado`, que diz se o coletor
 respondeu e por que não.
+
+---
+
+## 14. Departamento é classificação da IA, não campo do SZ Chat
+
+**Decisão.** A área responsável por cada conversa — comercial, cobrança,
+atendimento ao aluno — sai da **mesma chamada de IA** que já analisa a conversa, a
+partir do conteúdo e da intenção predominante. É um `Classificado<string>` como
+qualquer outro campo inferido, com confiança, evidências e justificativa.
+
+**Por quê.** O SZ Chat é compartilhado pelas três operações e não distingue nenhuma
+delas em campo estruturado. A tabela `sectors` está vazia em produção
+(`/filtros` devolve `equipes: []`) e `attendances.sector_id` aponta para linhas sem
+nome, então não existe metadado de equipe para usar como âncora barata. O conteúdo
+da conversa é a única fonte disponível — e é, de todo modo, a fonte certa: quem
+manda mensagem não escolhe departamento, descreve um problema.
+
+Uma segunda chamada de IA só para classificar dobraria o custo e a latência de um
+pipeline que já lê a conversa inteira.
+
+**Descartado — `if comercial else cobrança`.** As áreas vivem em `DEPARTAMENTOS`
+(`app/enrich/taxonomia.py`), no mesmo formato de `ETAPAS_DO_FUNIL`: chave, rótulo e
+descrição. A descrição é o que vai para o prompt — é ali que estão escritas as duas
+confusões caras (parcelamento em negociação é comercial; matrícula futura é
+comercial), e acrescentar uma quarta área é acrescentar um item à lista.
+
+**Descartado — confiança como float com corte em 0.70.** O produto inteiro fala
+`alta | media | baixa`, e `<SeloDeOrigem>` lê esse vocabulário. Um segundo
+vocabulário de confiança só para este campo faria a mesma pergunta ter duas
+respostas na mesma tela. O que ficou configurável é o **nível mínimo**
+(`DEPARTAMENTO_CONFIANCA_MINIMA`, padrão `media`); abaixo dele o valor já chega como
+`nao_identificado`.
+
+**Não identificado é resultado, não falha.** Preferimos uma fatia auditável — a
+`departamento_justificativa` diz por que a régua não decidiu — a contaminar o
+Analytics de uma área com conversa de outra. Um número errado num painel não tem
+cara de errado.
+
+**A virada de chave mora no coletor.** `FILTRAR_COMERCIAL_POR_DEPARTAMENTO` (padrão
+**false**) decide se `/funil` passa a contar só o comercial. Fica no coletor porque o
+BI lê o mesmo banco: uma flag de frontend faria a planilha e a tela discordarem sem
+ninguém saber qual está certa. E fica desligada até o backfill rodar — ligada antes,
+ela não filtraria o painel comercial, esvaziaria ele, já que nenhuma conversa antiga
+tem departamento.
+
+**Conversa antiga não some.** Toda consulta lê `departamento NULL` como
+`nao_identificado` via `coalesce`. `NULL = 'comercial'` é NULL, não falso: sem o
+coalesce, ligar a flag apagaria do painel todo o histórico não reclassificado — sem
+erro, sem aviso, só um número menor.
+
+**Descartado — a régua comercial nas telas novas.** `/cobranca` e `/atendimento` não
+mostram funil de etapas, objeções, próximos passos nem indício de conversão. Não é
+que esses números seriam baixos ali: é que medem outra coisa. Uma coluna "indício de
+conversão" zerada num painel de cobrança faz a equipe parecer improdutiva numa
+métrica que nunca foi dela.
+
+**Custo aceito.** A qualidade da classificação só se conhece medindo. Por isso o
+painel de observabilidade ganhou a distribuição por área **antes** de o departamento
+reger qualquer número, e o backfill (`cli reclassificar`) é manual e fatiável.

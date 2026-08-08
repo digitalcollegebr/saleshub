@@ -32,7 +32,15 @@ const VARIANTE_DO_MOTIVO: Record<MotivoDeAtencao, "critico" | "atencao" | "neutr
   lead_abandonou: "neutro",
 };
 
-export function ConversasComAtencao({ itens }: { itens: readonly ConversaComAtencao[] }) {
+export function ConversasComAtencao({
+  itens,
+  mostrarCurso = true,
+}: {
+  itens: readonly ConversaComAtencao[];
+  // Curso de interesse é leitura comercial. Em cobrança, "Curso não identificado"
+  // sob toda linha diz que faltou dado — quando na verdade a pergunta não se aplica.
+  mostrarCurso?: boolean;
+}) {
   return (
     <Card>
       <CardCabecalho>
@@ -61,8 +69,8 @@ export function ConversasComAtencao({ itens }: { itens: readonly ConversaComAten
                     <p className="text-texto truncate text-sm font-medium">{item.leadNome}</p>
                     <p className="text-texto-fraco truncate text-xs">{item.detalheDoMotivo}</p>
                     <p className="text-texto-fraco mt-1 text-[11px]">
-                      {item.atendenteNome ?? "Sem atendente"} ·{" "}
-                      {item.cursoNome ?? "Curso não identificado"}
+                      {item.atendenteNome ?? "Sem atendente"}
+                      {mostrarCurso ? ` · ${item.cursoNome ?? "Curso não identificado"}` : ""}
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
@@ -133,7 +141,21 @@ export function OportunidadesEmAberto({ itens }: { itens: readonly OportunidadeE
   );
 }
 
-export function RankingDeAtendentes({ linhas }: { linhas: readonly LinhaDoRanking[] }) {
+/**
+ * `colunasComerciais` esconde "próximo passo" e "indício de conversão".
+ *
+ * Fora do comercial elas não medem nada: a régua de próximo passo foi escrita
+ * para negociação, e indício de conversão é o lead dizendo que fechou. Mantê-las
+ * zeradas num painel de cobrança faria a equipe parecer improdutiva numa métrica
+ * que não é dela.
+ */
+export function RankingDeAtendentes({
+  linhas,
+  colunasComerciais = true,
+}: {
+  linhas: readonly LinhaDoRanking[];
+  colunasComerciais?: boolean;
+}) {
   return (
     <Card>
       <CardCabecalho>
@@ -170,12 +192,16 @@ export function RankingDeAtendentes({ linhas }: { linhas: readonly LinhaDoRankin
                   <th scope="col" className="px-4 py-2 text-right font-medium">
                     1ª resposta
                   </th>
-                  <th scope="col" className="px-4 py-2 text-right font-medium">
-                    Próx. passo
-                  </th>
-                  <th scope="col" className="px-4 py-2 text-right font-medium">
-                    Indício conv.
-                  </th>
+                  {colunasComerciais && (
+                    <>
+                      <th scope="col" className="px-4 py-2 text-right font-medium">
+                        Próx. passo
+                      </th>
+                      <th scope="col" className="px-4 py-2 text-right font-medium">
+                        Indício conv.
+                      </th>
+                    </>
+                  )}
                   <th scope="col" className="px-4 py-2 text-right font-medium">
                     Qualidade
                   </th>
@@ -201,12 +227,16 @@ export function RankingDeAtendentes({ linhas }: { linhas: readonly LinhaDoRankin
                     <td className="text-texto-fraco px-4 py-2.5 text-right tabular-nums">
                       {formatarDuracao(linha.tempoMedioPrimeiraRespostaSegundos)}
                     </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">
-                      {formatarInteiro(linha.comProximoPasso)}
-                    </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums">
-                      {formatarInteiro(linha.comIndicioDeConversao)}
-                    </td>
+                    {colunasComerciais && (
+                      <>
+                        <td className="px-4 py-2.5 text-right tabular-nums">
+                          {formatarInteiro(linha.comProximoPasso)}
+                        </td>
+                        <td className="px-4 py-2.5 text-right tabular-nums">
+                          {formatarInteiro(linha.comIndicioDeConversao)}
+                        </td>
+                      </>
+                    )}
                     <td className="px-4 py-2.5">
                       <span className="flex items-center justify-end gap-1.5 tabular-nums">
                         {formatarInteiro(linha.qualidadeMedia.valor)}

@@ -10,7 +10,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Filter, Megaphone, MessagesSquare, Settings, ShieldCheck } from "lucide-react";
+import {
+  BarChart3,
+  Filter,
+  GraduationCap,
+  Megaphone,
+  MessagesSquare,
+  Receipt,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
 import { MARCA } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 import { useOrigemDosDados, useUsuario } from "@/hooks/use-dados";
@@ -25,6 +34,16 @@ const NAVEGACAO: readonly {
   disponivel: boolean;
 }[] = [
   { area: "funil", href: "/funil", rotulo: "Funil de conversas", Icone: Filter, disponivel: true },
+  // As três operações que compartilham o SZ Chat, juntas e no topo: a separação
+  // entre elas é o que o painel passou a garantir, e o menu é onde isso se vê.
+  { area: "cobranca", href: "/cobranca", rotulo: "Cobrança", Icone: Receipt, disponivel: true },
+  {
+    area: "atendimento",
+    href: "/atendimento",
+    rotulo: "Atendimento ao aluno",
+    Icone: GraduationCap,
+    disponivel: true,
+  },
   {
     area: "conversas",
     href: "/conversas",
