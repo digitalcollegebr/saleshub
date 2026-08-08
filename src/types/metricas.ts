@@ -108,8 +108,24 @@ export interface OportunidadeEmAberto {
 }
 
 /** Tudo que o dashboard precisa, numa requisição. */
+/**
+ * O caminho do lead entre o chatbot de qualificação (SDR) e o consultor de
+ * carreira. São duas operações em sequência dentro da mesma conversa, e o painel
+ * tratava as duas como uma só — o que escondia o degrau entre elas.
+ *
+ * Tudo aqui é `medida`: sai de contagem de mensagem e do campo `phase` da
+ * plataforma, nunca de leitura da IA. Este bloco não diz se a qualificação foi
+ * boa; diz se ela terminou em alguém.
+ */
+export interface RepasseParaConsultor {
+  readonly indicadores: readonly Indicador[];
+  /** Faixas de tempo até a primeira mensagem de uma pessoa. Soma só os repassados. */
+  readonly tempoAteOConsultor: readonly ItemDeDistribuicao[];
+}
+
 export interface PainelDoFunil {
   readonly indicadores: readonly Indicador[];
+  readonly repasse: RepasseParaConsultor;
   readonly funil: readonly EtapaDoFunilComVolume[];
   readonly serieDeVolume: readonly PontoDaSerie[];
   readonly objecoes: readonly ItemDeDistribuicao[];

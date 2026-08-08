@@ -362,6 +362,13 @@ export function gerarConversas(quantidade: number, diasParaTras: number): Conver
           (new Date(ultima.enviadaEm).getTime() - inicio.getTime()) / 60000,
         ),
         houveRespostaDoAtendente: doAtendente > 0,
+        // O chatbot de qualificação atende quase tudo antes de repassar — é o
+        // desenho do processo, não um acaso do dado fictício.
+        houveAtendimentoDoSdr: rnd() > 0.08,
+        // Encaminhada é mais do que atendida: parte das que o consultor nunca
+        // respondeu já tinha saído do robô. É esse degrau que o bloco de repasse
+        // existe para mostrar, e um mock sem ele mostraria o bloco sempre zerado.
+        encaminhadaAoConsultor: doAtendente > 0 || rnd() > 0.45,
       },
       analise: montarAnalise(etapaChave, curso.id, atendente.unidadeId),
       mensagens,

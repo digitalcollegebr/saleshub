@@ -320,6 +320,97 @@ function distribuir(
     .sort((a, b) => b.total - a.total);
 }
 
+/**
+ * O caminho do lead do SDR até o consultor. Espelha `_repasse` em
+ * `app/saleshub/consultas.py`: mesma chave, mesmo rótulo, mesma classe e mesma
+ * explicação — só os valores são fictícios.
+ */
+function montarRepasse(conversas: ConversaGerada[]): PainelDoFunil["repasse"] {
+  const total = conversas.length;
+  const peloSdr = conversas.filter((c) => c.metricas.houveAtendimentoDoSdr).length;
+  const repassadas = conversas.filter((c) => c.metricas.houveRespostaDoAtendente).length;
+  const paradas = total - repassadas;
+  const semConsultor = conversas.filter(
+    (c) => c.metricas.encaminhadaAoConsultor && !c.metricas.houveRespostaDoAtendente,
+  ).length;
+
+  const faixas = [
+    { chave: "ate_5min", rotulo: "Até 5 min", limite: 300 },
+    { chave: "ate_30min", rotulo: "5 a 30 min", limite: 1800 },
+    { chave: "ate_2h", rotulo: "30 min a 2 h", limite: 7200 },
+    { chave: "ate_24h", rotulo: "2 a 24 h", limite: 86400 },
+    { chave: "mais_24h", rotulo: "Mais de 24 h", limite: Infinity },
+  ];
+  const tempos = conversas
+    .map((c) => c.metricas.tempoAtePrimeiraRespostaSegundos)
+    .filter((t): t is number => t !== null);
+  const contagem = new Map<string, number>();
+  for (const t of tempos) {
+    const faixa = faixas.find((f) => t <= f.limite) ?? faixas[faixas.length - 1];
+    contagem.set(faixa.chave, (contagem.get(faixa.chave) ?? 0) + 1);
+  }
+
+  return {
+    indicadores: [
+      {
+        chave: "sdr_atendeu",
+        rotulo: "Qualificadas pelo SDR",
+        valor: peloSdr,
+        formato: "inteiro",
+        classe: "medida",
+        explicacao:
+          "Conversas em que o chatbot de qualificação enviou pelo menos uma mensagem. Não diz se a qualificação foi boa — diz que houve.",
+      },
+      {
+        chave: "repassadas",
+        rotulo: "Repassadas ao consultor",
+        valor: repassadas,
+        formato: "inteiro",
+        classe: "medida",
+        explicacao:
+          "Conversas em que uma PESSOA do time escreveu. É o repasse efetivo: encaminhar sem responder não conta aqui.",
+      },
+      {
+        chave: "taxa_de_repasse",
+        rotulo: "Taxa de repasse",
+        valor: total ? (repassadas / total) * 100 : 0,
+        formato: "percentual",
+        classe: "medida",
+        explicacao:
+          "Fatia das conversas do período que chegaram a um consultor. O denominador é o período inteiro, não só o que o SDR atendeu.",
+      },
+      {
+        chave: "paradas_no_sdr",
+        rotulo: "Paradas no SDR",
+        valor: paradas,
+        formato: "inteiro",
+        classe: "medida",
+        explicacao:
+          "Nenhuma pessoa do time escreveu. O lead falou com o robô e a conversa terminou ali.",
+        filtroDeOrigem: { motivo: "sem_resposta_do_atendente" },
+      },
+      {
+        chave: "encaminhadas_sem_consultor",
+        rotulo: "Encaminhadas sem resposta",
+        valor: semConsultor,
+        formato: "inteiro",
+        classe: "medida",
+        explicacao:
+          "A plataforma marcou a conversa como encaminhada ao humano e nenhuma pessoa escreveu. É trabalho parado, não histórico.",
+        filtroDeOrigem: { motivo: "sem_resposta_do_atendente" },
+      },
+    ],
+    // Faixa zerada continua na lista, como no coletor: some se lê como inexistente.
+    tempoAteOConsultor: faixas.map((f) => ({
+      chave: f.chave,
+      rotulo: f.rotulo,
+      total: contagem.get(f.chave) ?? 0,
+      participacao: tempos.length ? ((contagem.get(f.chave) ?? 0) / tempos.length) * 100 : 0,
+      origem: "explicito" as const,
+    })),
+  };
+}
+
 function montarRanking(conversas: ConversaGerada[]): LinhaDoRanking[] {
   const porAtendente = new Map<string, ConversaGerada[]>();
   for (const c of conversas) {
@@ -433,6 +524,7 @@ export class ApiMock implements SalesHubApi {
 
     return esperar({
       indicadores: montarIndicadores(conversas),
+      repasse: montarRepasse(conversas),
       funil: montarFunil(conversas),
       serieDeVolume: montarSerie(conversas, filtros),
       objecoes: distribuir(

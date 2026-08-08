@@ -20,6 +20,7 @@ import {
   EstadoVazio,
 } from "@/components/dados/estados";
 import { FunilDeConversas } from "@/components/funil/funil-de-conversas";
+import { RepasseParaOConsultor } from "@/components/funil/repasse";
 import { GraficoDeDistribuicao, GraficoDeVolume } from "@/components/funil/graficos";
 import {
   ConversasComAtencao,
@@ -94,6 +95,13 @@ function ConteudoDoPainel() {
               ))}
             </div>
           </section>
+
+          {/* Antes do funil: se o lead não chegou a um consultor, não houve
+              negociação para o funil descrever. */}
+          <RepasseParaOConsultor
+            repasse={painel.data.repasse}
+            hrefDoIndicador={linkParaConversas}
+          />
 
           <div className="grid gap-4 xl:grid-cols-[3fr_2fr]">
             <FunilDeConversas

@@ -136,6 +136,14 @@ export interface MetricasDaConversa {
   readonly tempoMedioDeRespostaSegundos: number | null;
   readonly duracaoMinutos: number | null;
   readonly houveRespostaDoAtendente: boolean;
+  /** O chatbot de qualificação (SDR) enviou pelo menos uma mensagem. */
+  readonly houveAtendimentoDoSdr: boolean;
+  /**
+   * A plataforma marcou a conversa como encaminhada ao consultor. Encaminhar não
+   * é atender: em produção, 467 conversas estavam assim sem nenhuma mensagem de
+   * pessoa. É por isso que os dois campos existem separados.
+   */
+  readonly encaminhadaAoConsultor: boolean;
 }
 
 /** Análise produzida sobre a transcrição. Tudo aqui é leitura, não registro. */
