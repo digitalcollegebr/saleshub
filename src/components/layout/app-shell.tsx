@@ -3,9 +3,10 @@
 /**
  * Estrutura da aplicação: barra lateral + topo.
  *
- * A navegação já lê o perfil do usuário via `podeVer()`. Enquanto não há login,
- * o mock devolve um diretor — mas quando a autenticação entrar, o menu já
- * responde ao perfil sem refatoração.
+ * O menu se monta a partir das PERMISSÕES da sessão (`podeVer()`), então quem
+ * tem só cobrança não enxerga a existência do funil. Esconder não é a proteção —
+ * a rota é barrada em `src/proxy.ts` e no proxy de dados —, mas mostrar um item
+ * que devolve "sem acesso" ao clique é convidar para uma porta fechada.
  */
 
 import { usePathname } from "next/navigation";
@@ -15,7 +16,7 @@ import { FundoDaMarca, SimboloDaMarca } from "./marca";
 import { GavetaDeNavegacao, ITENS, ListaDeNavegacao, useGaveta } from "./navegacao";
 import { useOrigemDosDados, useUsuario } from "@/hooks/use-dados";
 import { Badge } from "@/components/ui/badge";
-import { ROTULO_PERFIL } from "@/types";
+import { ROTULO_PERMISSAO, type Permissao } from "@/types";
 
 /**
  * O que o cabeçalho anuncia depende de onde se está.
@@ -60,25 +61,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const caminho = usePathname();
   const { data: usuario } = useUsuario();
   const { data: origem } = useOrigemDosDados();
-  const perfil = usuario?.perfil ?? "diretor";
+  // Sem usuário carregado ainda, nenhuma permissão: o menu não pode piscar itens
+  // que a pessoa talvez não possa ver.
+  const permissoes: readonly Permissao[] = usuario?.permissoes ?? [];
   const secao = secaoDoCaminho(caminho);
   const gaveta = useGaveta();
 
   // O painel de TV ocupa a tela inteira: barra lateral e cabeçalho roubariam
   // área útil e não servem a ninguém do outro lado da sala. Ver app/tv/page.tsx.
   if (caminho.startsWith("/tv")) return <>{children}</>;
-  // A tela de entrada é anterior à sessão: não há perfil para montar menu.
+  // A tela de entrada é anterior à sessão: não há permissão para montar menu.
   if (caminho.startsWith("/entrar")) return <>{children}</>;
 
   return (
     <div className="flex min-h-dvh">
       <FundoDaMarca />
-      <GavetaDeNavegacao perfil={perfil} aberta={gaveta.aberta} aoFechar={gaveta.fechar} />
+      <GavetaDeNavegacao permissoes={permissoes} aberta={gaveta.aberta} aoFechar={gaveta.fechar} />
       <aside className="border-borda bg-superficie hidden w-60 shrink-0 flex-col border-r lg:flex">
         <div className="border-borda border-b p-4">
           <Marca />
         </div>
-        <ListaDeNavegacao perfil={perfil} />
+        <ListaDeNavegacao permissoes={permissoes} />
         <p className="border-borda text-texto-fraco border-t p-3 text-[11px] leading-relaxed">
           {MARCA.assinatura}
         </p>
@@ -114,7 +117,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   {usuario?.nome ?? "—"}
                 </p>
                 <p className="text-texto-fraco text-[11px] leading-tight">
-                  {usuario ? ROTULO_PERFIL[usuario.perfil] : "carregando…"}
+                  {usuario
+                    ? usuario.permissoes.includes("administrador")
+                      ? ROTULO_PERMISSAO.administrador
+                      : usuario.permissoes.map((p) => ROTULO_PERMISSAO[p]).join(" · ") ||
+                        "sem acesso"
+                    : "carregando…"}
                 </p>
               </div>
               <form method="POST" action="/api/auth/sair">

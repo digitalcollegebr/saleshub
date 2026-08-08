@@ -64,7 +64,6 @@ export async function POST(pedido: Request) {
     sub: "local",
     email,
     nome: "Administrador local",
-    perfil: "administrador",
     via: "local",
   });
 

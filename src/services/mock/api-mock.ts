@@ -24,7 +24,9 @@ import type {
   Paginacao,
   PainelDoFunil,
   PontoDaSerie,
+  Permissao,
   UsuarioAutenticado,
+  UsuarioDoPainel,
 } from "@/types";
 import { inferido } from "@/types";
 import { ErroDaApi } from "../erros";
@@ -485,8 +487,39 @@ export class ApiMock implements SalesHubApi {
       id: "user-demo",
       nome: "Daniel Monteiro",
       email: "daniel.monteiro@digitalcollege.com.br",
-      perfil: "diretor" as const,
-      unidadesPermitidas: "todas" as const,
+      permissoes: ["comercial", "cobranca", "atendimento", "administrador"] as const,
+    });
+  }
+
+  /**
+   * A demonstração não tem cadastro de gente: devolve uma lista fixa só para a
+   * tela existir. Espelhar aqui um banco de usuários fictícios daria a impressão
+   * de que dá para administrar acesso sem coletor, e não dá.
+   */
+  async listarUsuarios(): Promise<{ itens: readonly UsuarioDoPainel[] }> {
+    return esperar({
+      itens: [
+        {
+          email: "demo@digitalcollege.com.br",
+          nome: "Usuário de demonstração",
+          permissoes: ["comercial", "cobranca", "atendimento", "administrador"] as const,
+          primeiroAcessoEm: new Date().toISOString(),
+          ultimoAcessoEm: new Date().toISOString(),
+        },
+      ],
+    });
+  }
+
+  async definirPermissoes(
+    email: string,
+    permissoes: readonly Permissao[],
+  ): Promise<UsuarioDoPainel> {
+    return esperar({
+      email,
+      nome: "Usuário de demonstração",
+      permissoes,
+      primeiroAcessoEm: new Date().toISOString(),
+      ultimoAcessoEm: new Date().toISOString(),
     });
   }
 

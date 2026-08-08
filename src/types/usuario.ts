@@ -1,72 +1,97 @@
 /**
- * Perfis de acesso. A autenticação real ainda não existe, mas o tipo já existe:
- * telas e itens de menu consultam `podeVer()` desde agora, então ligar um provedor
- * de identidade depois não vira refatoração de componente.
+ * Quem entra, e no quê.
+ *
+ * **Permissão é conjunto, não papel.** O administrador marca caixas, e a mesma
+ * pessoa responde por cobrança e atendimento sem que exista um perfil
+ * "cobrança+atendimento" inventado para ela. Foi por isso que o `PerfilDeAcesso`
+ * único saiu daqui.
+ *
+ * **Autenticar não é autorizar.** Quem entra pelo Google e ainda não recebeu
+ * caixa nenhuma tem `permissoes: []` e não vê tela alguma — só o aviso para
+ * procurar o administrador. O padrão é negar; conceder algo por omissão daria
+ * conversa de cliente a qualquer conta nova do domínio.
  */
 
-export type PerfilDeAcesso = (typeof PERFIS_VALIDOS)[number];
+export const PERMISSOES = ["comercial", "cobranca", "atendimento", "administrador"] as const;
 
-/**
- * A lista existe além do tipo porque `ACESSOS` chega como texto de variável de
- * ambiente: o TypeScript não valida string em tempo de execução, e um perfil
- * escrito errado ali viraria um acesso com poder indefinido.
- */
-export const PERFIS_VALIDOS = [
-  "diretor",
-  "gestor_de_vendas",
-  "gestor_de_marketing",
-  "administrador",
-] as const;
+export type Permissao = (typeof PERMISSOES)[number];
+
+export const ROTULO_PERMISSAO: Record<Permissao, string> = {
+  comercial: "Comercial",
+  cobranca: "Cobrança",
+  atendimento: "Atendimento ao aluno",
+  administrador: "Administrador",
+};
+
+export const EXPLICACAO_PERMISSAO: Record<Permissao, string> = {
+  comercial: "Funil de conversas e a lista de conversas.",
+  cobranca: "Painel de cobrança.",
+  atendimento: "Painel de atendimento ao aluno.",
+  administrador: "Tudo, incluindo conceder permissões a outras pessoas.",
+};
 
 export interface UsuarioAutenticado {
   readonly id: string;
   readonly nome: string;
   readonly email: string;
-  readonly perfil: PerfilDeAcesso;
-  readonly unidadesPermitidas: readonly string[] | "todas";
+  readonly permissoes: readonly Permissao[];
 }
 
-export const ROTULO_PERFIL: Record<PerfilDeAcesso, string> = {
-  diretor: "Diretoria",
-  gestor_de_vendas: "Gestão de vendas",
-  gestor_de_marketing: "Gestão de marketing",
-  administrador: "Administração",
-};
+/** Uma linha da tela de administração. */
+export interface UsuarioDoPainel {
+  readonly email: string;
+  readonly nome: string | null;
+  readonly permissoes: readonly Permissao[];
+  readonly primeiroAcessoEm: string | null;
+  readonly ultimoAcessoEm: string | null;
+}
 
-/** Áreas da aplicação, para o menu e para o controle de acesso futuro. */
+/** Áreas da aplicação, para o menu e para o controle de acesso. */
 export type AreaDaAplicacao =
   | "funil"
   | "cobranca"
   | "atendimento"
   | "conversas"
   | "tv"
+  | "usuarios"
   | "marketing"
   | "qualidade"
   | "configuracoes";
 
 /**
- * Cobrança e atendimento ao aluno ficam **fora** de `gestor_de_vendas` e de
- * `gestor_de_marketing` de propósito: separar as operações no dado e depois
- * mostrar as três a todo mundo desfaria metade do ponto. Diretoria vê tudo porque
- * a leitura dela é da operação inteira.
+ * Qual permissão abre cada área.
+ *
+ * `conversas` e `tv` pedem QUALQUER uma das três operacionais: a lista de
+ * conversas e o rodízio da TV atravessam departamentos por natureza. Vale
+ * registrar o limite — hoje quem tem só cobrança enxerga, na lista, conversa
+ * comercial também. Separar isso exige filtrar a lista pela permissão, e é
+ * trabalho próprio.
  */
-const ACESSO_POR_PERFIL: Record<PerfilDeAcesso, readonly AreaDaAplicacao[]> = {
-  // O painel de TV é leitura executiva das três áreas — cabe a quem enxerga as três.
-  diretor: ["funil", "cobranca", "atendimento", "conversas", "tv", "marketing", "qualidade"],
-  gestor_de_vendas: ["funil", "conversas", "qualidade"],
-  gestor_de_marketing: ["funil", "conversas", "marketing"],
-  administrador: [
-    "funil",
-    "cobranca",
-    "atendimento",
-    "conversas",
-    "tv",
-    "marketing",
-    "qualidade",
-    "configuracoes",
-  ],
+const OPERACIONAIS: readonly Permissao[] = ["comercial", "cobranca", "atendimento"];
+
+const EXIGIDA: Record<AreaDaAplicacao, readonly Permissao[]> = {
+  funil: ["comercial"],
+  cobranca: ["cobranca"],
+  atendimento: ["atendimento"],
+  conversas: OPERACIONAIS,
+  tv: OPERACIONAIS,
+  usuarios: ["administrador"],
+  marketing: ["comercial"],
+  qualidade: OPERACIONAIS,
+  configuracoes: ["administrador"],
 };
 
-export function podeVer(perfil: PerfilDeAcesso, area: AreaDaAplicacao): boolean {
-  return ACESSO_POR_PERFIL[perfil].includes(area);
+/** O administrador enxerga tudo — inclusive o que ainda não existe. */
+export function podeVer(permissoes: readonly Permissao[], area: AreaDaAplicacao): boolean {
+  if (permissoes.includes("administrador")) return true;
+  return EXIGIDA[area].some((p) => permissoes.includes(p));
+}
+
+/** Autenticou mas não recebeu nada. É o estado de todo primeiro acesso. */
+export function semAcesso(permissoes: readonly Permissao[]): boolean {
+  return permissoes.length === 0;
+}
+
+export function ehPermissao(valor: string): valor is Permissao {
+  return (PERMISSOES as readonly string[]).includes(valor);
 }

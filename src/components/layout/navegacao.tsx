@@ -24,12 +24,13 @@ import {
   MessagesSquare,
   Receipt,
   MonitorPlay,
+  UsersRound,
   Settings,
   ShieldCheck,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { podeVer, type AreaDaAplicacao, type PerfilDeAcesso } from "@/types";
+import { podeVer, type AreaDaAplicacao, type Permissao } from "@/types";
 
 export const ITENS: readonly {
   area: AreaDaAplicacao;
@@ -83,6 +84,14 @@ export const ITENS: readonly {
     disponivel: true,
   },
   {
+    area: "usuarios",
+    href: "/usuarios",
+    rotulo: "Usuários",
+    curto: "Usuários",
+    Icone: UsersRound,
+    disponivel: true,
+  },
+  {
     area: "marketing",
     href: "/marketing",
     rotulo: "Marketing",
@@ -108,23 +117,23 @@ export const ITENS: readonly {
   },
 ];
 
-export function itensVisiveis(perfil: PerfilDeAcesso) {
-  return ITENS.filter((item) => podeVer(perfil, item.area));
+export function itensVisiveis(permissoes: readonly Permissao[]) {
+  return ITENS.filter((item) => podeVer(permissoes, item.area));
 }
 
 /** Lista vertical — a barra lateral do desktop e o corpo da gaveta do celular. */
 export function ListaDeNavegacao({
-  perfil,
+  permissoes,
   aoNavegar,
 }: {
-  perfil: PerfilDeAcesso;
+  permissoes: readonly Permissao[];
   aoNavegar?: () => void;
 }) {
   const caminho = usePathname();
 
   return (
     <nav aria-label="Navegação principal" className="flex-1 space-y-0.5 p-2">
-      {itensVisiveis(perfil).map((item) => {
+      {itensVisiveis(permissoes).map((item) => {
         const ativo = caminho.startsWith(item.href);
         const conteudo = (
           <>
@@ -171,11 +180,11 @@ export function ListaDeNavegacao({
  * atrás do painel e o dedo perde a referência.
  */
 export function GavetaDeNavegacao({
-  perfil,
+  permissoes,
   aberta,
   aoFechar,
 }: {
-  perfil: PerfilDeAcesso;
+  permissoes: readonly Permissao[];
   aberta: boolean;
   aoFechar: () => void;
 }) {
@@ -218,7 +227,7 @@ export function GavetaDeNavegacao({
             <X className="size-5" aria-hidden="true" />
           </button>
         </div>
-        <ListaDeNavegacao perfil={perfil} aoNavegar={aoFechar} />
+        <ListaDeNavegacao permissoes={permissoes} aoNavegar={aoFechar} />
       </div>
     </div>
   );

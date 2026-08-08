@@ -18,7 +18,9 @@ import type {
   Pagina,
   Paginacao,
   PainelDoFunil,
+  Permissao,
   UsuarioAutenticado,
+  UsuarioDoPainel,
 } from "@/types";
 import { pedir } from "./http";
 
@@ -42,6 +44,17 @@ export class ApiHttp implements SalesHubApi {
 
   obterUsuarioAtual(): Promise<UsuarioAutenticado> {
     return pedir(this.baseUrl, "/usuarios/eu");
+  }
+
+  listarUsuarios(): Promise<{ itens: readonly UsuarioDoPainel[] }> {
+    return pedir(this.baseUrl, "/usuarios");
+  }
+
+  definirPermissoes(email: string, permissoes: readonly Permissao[]): Promise<UsuarioDoPainel> {
+    return pedir(this.baseUrl, `/usuarios/${encodeURIComponent(email)}/permissoes`, {
+      metodo: "PUT",
+      corpo: { permissoes },
+    });
   }
 
   obterOpcoesDeFiltro(): Promise<OpcoesDeFiltro> {

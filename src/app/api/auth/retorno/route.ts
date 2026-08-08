@@ -9,7 +9,6 @@
 
 import { NextResponse } from "next/server";
 import { identidadeDoCodigo, urlDeRetorno } from "@/lib/google";
-import { perfilDe } from "@/lib/acesso";
 import { COOKIE_DA_SESSAO, atributosDoCookie, emitir } from "@/lib/sessao";
 
 export const dynamic = "force-dynamic";
@@ -49,16 +48,14 @@ export async function GET(pedido: Request) {
   });
   if (!identidade) return recusar(pedido, "pedido_invalido");
 
-  // Autenticado no Google não é autorizado aqui: o perfil vem de ACESSOS, e sem
-  // perfil não há entrada. Ver a decisão em lib/acesso.ts.
-  const perfil = perfilDe(identidade.email);
-  if (!perfil) return recusar(pedido, "sem_acesso");
-
+  // Autenticado no Google entra — no domínio certo, a sessão é criada. O que
+  // ele PODE ver é outra pergunta, respondida a cada pedido pelas permissões da
+  // tabela `painel_usuarios`. Quem ainda não recebeu nenhuma cai na tela de
+  // "peça acesso ao administrador", que é diferente de não conseguir entrar.
   const { valor, maxAge } = emitir({
     sub: identidade.sub,
     email: identidade.email,
     nome: identidade.nome,
-    perfil,
     via: "google",
   });
 

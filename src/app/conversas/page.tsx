@@ -9,6 +9,7 @@
  */
 
 import { Suspense, useState } from "react";
+import { GuardaDeArea } from "@/components/layout/guarda-de-area";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { BarraDeFiltros } from "@/components/filtros/barra-de-filtros";
@@ -189,7 +190,9 @@ export default function PaginaDeConversas() {
   // `useSearchParams` exige limite de Suspense no App Router.
   return (
     <Suspense fallback={<EsqueletoDeBloco linhas={8} />}>
-      <Conteudo />
+      <GuardaDeArea area="conversas">
+        <Conteudo />
+      </GuardaDeArea>
     </Suspense>
   );
 }

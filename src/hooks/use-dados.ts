@@ -5,9 +5,9 @@
  * estados de carregando/erro que a interface precisa distinguir.
  */
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/services";
-import type { FiltrosDoPainel, Paginacao } from "@/types";
+import type { FiltrosDoPainel, Paginacao, Permissao } from "@/types";
 
 /** Filtros fazem parte da chave: recorte diferente é entrada de cache diferente. */
 const chave = {
@@ -61,6 +61,25 @@ export function useOpcoesDeFiltro() {
  * ninguém tocar. `placeholderData` mantendo o valor anterior é o que evita a tela
  * piscar em esqueleto a cada atualização — numa TV isso seria visível da porta.
  */
+export function useUsuariosDoPainel() {
+  return useQuery({
+    queryKey: ["usuarios"],
+    queryFn: () => api.listarUsuarios(),
+    staleTime: 0,
+  });
+}
+
+export function useDefinirPermissoes() {
+  const cliente = useQueryClient();
+  return useMutation({
+    mutationFn: ({ email, permissoes }: { email: string; permissoes: readonly Permissao[] }) =>
+      api.definirPermissoes(email, permissoes),
+    // Recarrega a lista inteira em vez de remendar o item: a resposta do
+    // servidor é a verdade, e permissão inválida é descartada lá.
+    onSettled: () => cliente.invalidateQueries({ queryKey: ["usuarios"] }),
+  });
+}
+
 export function usePainelDoFunil(filtros: FiltrosDoPainel, atualizarACada?: number) {
   return useQuery({
     queryKey: chave.painel(filtros),

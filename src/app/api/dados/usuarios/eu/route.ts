@@ -1,18 +1,18 @@
 /**
- * Quem é o usuário da sessão.
+ * Quem é o usuário da sessão, e o que ele pode.
  *
- * Rota **local**, não encaminhada: quem sabe quem está logado é quem tem a sessão,
- * e a API de analytics autentica um cliente, não uma pessoa. Ela nunca deveria
- * responder "quem é você" — daí este arquivo existir ao lado do proxy, e o Next
- * dar precedência à rota específica sobre o `[...caminho]`.
+ * Rota **local**, não encaminhada: quem sabe quem está logado é quem tem a
+ * sessão, e a API de analytics autentica um cliente, não uma pessoa.
  *
- * O 401 aqui é redundante com `src/proxy.ts`, que já barra sem sessão. Fica
- * porque defesa em profundidade custa três linhas: se um dia alguém mexer no
- * `matcher` do proxy e esta rota escapar, ela continua fechada sozinha.
+ * As permissões vêm do coletor a cada chamada (com cache curto) em vez de
+ * viajarem no cookie — é o que faz "marquei a caixa, tenta agora" funcionar.
+ * A mesma chamada registra o acesso, e é por isso que alguém aparece na lista do
+ * administrador já na primeira tentativa de entrar.
  */
 
 import { cookies } from "next/headers";
 import { COOKIE_DA_SESSAO, ler } from "@/lib/sessao";
+import { PERMISSOES_DO_ADMIN_LOCAL, permissoesDe } from "@/lib/permissoes-do-usuario";
 import type { UsuarioAutenticado } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -27,10 +27,10 @@ export async function GET(): Promise<Response> {
     id: sessao.sub,
     nome: sessao.nome,
     email: sessao.email,
-    perfil: sessao.perfil,
-    // Unidade não é coletada pelo SZ Chat (ver consultas.py): não há o que
-    // restringir, e inventar uma lista aqui daria a impressão de que há.
-    unidadesPermitidas: "todas",
+    permissoes:
+      sessao.via === "local"
+        ? PERMISSOES_DO_ADMIN_LOCAL
+        : await permissoesDe(sessao.email, sessao.nome),
   };
   return Response.json(usuario);
 }

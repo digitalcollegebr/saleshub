@@ -10,6 +10,7 @@
  */
 
 import { Suspense } from "react";
+import { GuardaDeArea } from "@/components/layout/guarda-de-area";
 import { AlertTriangle } from "lucide-react";
 import { BarraDeFiltros } from "@/components/filtros/barra-de-filtros";
 import { CartaoIndicador } from "@/components/dados/cartao-indicador";
@@ -182,7 +183,9 @@ export default function PaginaDoFunil() {
   // `useSearchParams` exige limite de Suspense no App Router.
   return (
     <Suspense fallback={<EsqueletoDeBloco linhas={8} />}>
-      <ConteudoDoPainel />
+      <GuardaDeArea area="funil">
+        <ConteudoDoPainel />
+      </GuardaDeArea>
     </Suspense>
   );
 }

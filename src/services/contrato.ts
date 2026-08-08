@@ -18,10 +18,16 @@ import type {
   Pagina,
   Paginacao,
   PainelDoFunil,
+  Permissao,
   UsuarioAutenticado,
+  UsuarioDoPainel,
 } from "@/types";
 
 export interface SalesHubApi {
+  /** Lista de usuários do painel. Só o administrador alcança — ver o proxy. */
+  listarUsuarios(): Promise<{ itens: readonly UsuarioDoPainel[] }>;
+  definirPermissoes(email: string, permissoes: readonly Permissao[]): Promise<UsuarioDoPainel>;
+
   /** Usuário da sessão. Enquanto não há login, devolve um perfil de demonstração. */
   obterUsuarioAtual(): Promise<UsuarioAutenticado>;
 

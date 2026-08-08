@@ -9,6 +9,12 @@ import "server-only";
  * ninguém aqui vai usar — e traz superfície para auditar que não é nossa. O que
  * está abaixo é HMAC-SHA256 da biblioteca padrão do Node, e cabe numa revisão.
  *
+ * **O cookie carrega identidade, não permissão.** Quem pode o quê é lido do
+ * coletor a cada pedido. Se a permissão viajasse assinada aqui, conceder acesso a
+ * alguém só valeria no próximo login — o administrador marcaria a caixa e a
+ * pessoa continuaria sem ver nada por até 12 horas, sem entender por quê. Pior:
+ * revogar não teria efeito nenhum até o cookie expirar.
+ *
  * **Por que sem estado.** Não há sessão em banco: o cookie carrega quem é a
  * pessoa e até quando vale, e a assinatura garante que ninguém editou. O preço é
  * não conseguir revogar uma sessão específica antes de ela expirar — para
@@ -22,7 +28,6 @@ import "server-only";
  */
 
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import type { PerfilDeAcesso } from "@/types";
 
 export const COOKIE_DA_SESSAO = "saleshub_sessao";
 
@@ -33,7 +38,6 @@ export interface Sessao {
   sub: string;
   email: string;
   nome: string;
-  perfil: PerfilDeAcesso;
   /** Epoch em segundos. */
   exp: number;
   /** Como a pessoa entrou. Aparece na interface: "entrou pelo Google". */
@@ -100,7 +104,7 @@ export function ler(cookie: string | undefined): Sessao | null {
   try {
     const sessao = JSON.parse(Buffer.from(corpo, "base64url").toString("utf8")) as Sessao;
     if (typeof sessao.exp !== "number" || sessao.exp * 1000 < Date.now()) return null;
-    if (!sessao.email || !sessao.perfil) return null;
+    if (!sessao.email) return null;
     return sessao;
   } catch {
     return null;

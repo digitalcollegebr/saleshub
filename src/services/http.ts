@@ -22,7 +22,13 @@ export function montarUrl(baseUrl: string, caminho: string): URL {
 export async function pedir<T>(
   baseUrl: string,
   caminho: string,
-  opcoes: { busca?: Record<string, string | undefined>; sinal?: AbortSignal } = {},
+  opcoes: {
+    busca?: Record<string, string | undefined>;
+    sinal?: AbortSignal;
+    /** GET quando ausente. A tela de permissões precisa de PUT. */
+    metodo?: "GET" | "PUT" | "POST";
+    corpo?: unknown;
+  } = {},
 ): Promise<T> {
   const url = montarUrl(baseUrl, caminho);
   for (const [chave, valor] of Object.entries(opcoes.busca ?? {})) {
@@ -37,7 +43,12 @@ export async function pedir<T>(
   try {
     resposta = await fetch(url, {
       signal: controle.signal,
-      headers: { Accept: "application/json" },
+      method: opcoes.metodo ?? "GET",
+      headers: {
+        Accept: "application/json",
+        ...(opcoes.corpo === undefined ? {} : { "Content-Type": "application/json" }),
+      },
+      body: opcoes.corpo === undefined ? undefined : JSON.stringify(opcoes.corpo),
     });
   } catch (causa) {
     throw new ErroDaApi("Falha de rede", "rede", { causa });

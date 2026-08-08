@@ -9,6 +9,7 @@
  */
 
 import { Suspense } from "react";
+import { GuardaDeArea } from "@/components/layout/guarda-de-area";
 import { EsqueletoDeBloco } from "@/components/dados/estados";
 import { PainelOperacional } from "@/components/painel/painel-operacional";
 import { ProvedorDeDepartamento } from "@/hooks/use-departamento";
@@ -16,12 +17,14 @@ import { ProvedorDeDepartamento } from "@/hooks/use-departamento";
 export default function PaginaDeAtendimento() {
   return (
     <Suspense fallback={<EsqueletoDeBloco linhas={8} />}>
-      <ProvedorDeDepartamento departamento="atendimento_ao_aluno">
-        <PainelOperacional
-          titulo="Atendimento ao aluno"
-          descricao="Conversas de quem já é aluno: acesso à plataforma, documentos e declarações, horários, dúvida acadêmica e trancamento. Quem pergunta sobre matrícula futura é comercial, não aluno — a classificação segue a intenção, não a palavra."
-        />
-      </ProvedorDeDepartamento>
+      <GuardaDeArea area="atendimento">
+        <ProvedorDeDepartamento departamento="atendimento_ao_aluno">
+          <PainelOperacional
+            titulo="Atendimento ao aluno"
+            descricao="Conversas de quem já é aluno: acesso à plataforma, documentos e declarações, horários, dúvida acadêmica e trancamento. Quem pergunta sobre matrícula futura é comercial, não aluno — a classificação segue a intenção, não a palavra."
+          />
+        </ProvedorDeDepartamento>
+      </GuardaDeArea>
     </Suspense>
   );
 }

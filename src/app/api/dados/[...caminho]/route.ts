@@ -43,6 +43,8 @@ import { NextRequest } from "next/server";
 import { ApiMock } from "@/services/mock/api-mock";
 import { cookies } from "next/headers";
 import { COOKIE_DA_SESSAO, ler } from "@/lib/sessao";
+import { permissoesDe } from "@/lib/permissoes-do-usuario";
+import type { Permissao } from "@/types";
 import { configuracaoDoColetor } from "@/services/origem";
 import type { FiltrosDoPainel, Paginacao } from "@/types";
 
@@ -87,6 +89,19 @@ const ROTAS = [
   {
     padrao: /^conversas\/oportunidades$/,
     demo: (f: FiltrosDoPainel) => demonstracao.listarOportunidadesEmAberto(f),
+  },
+  // Administração de acesso. `somenteAdmin` é o que impede alguém com permissão
+  // de cobrança de se promover a administrador chamando a API na mão — esconder
+  // o item do menu não protege nada.
+  {
+    padrao: /^usuarios$/,
+    somenteAdmin: true,
+    demo: () => demonstracao.listarUsuarios(),
+  },
+  {
+    padrao: /^usuarios\/[^/]+\/permissoes$/,
+    somenteAdmin: true,
+    demo: () => demonstracao.listarUsuarios(),
   },
   {
     padrao: /^conversas\/[^/]+$/,
@@ -139,16 +154,78 @@ function paginacaoDaBusca(busca: URLSearchParams): Paginacao {
   };
 }
 
-export async function GET(
+/**
+ * A pessoa da sessão é administradora?
+ *
+ * Consultado no coletor com o mesmo cache curto de `/usuarios/eu` — não pode
+ * viajar no cookie, senão promover alguém a administrador só valeria no próximo
+ * login e rebaixar não valeria até o cookie expirar.
+ */
+async function permissoesDaSessao(): Promise<Permissao[] | null> {
+  const sessao = ler((await cookies()).get(COOKIE_DA_SESSAO)?.value);
+  if (!sessao) return null;
+  if (sessao.via === "local") return ["administrador"];
+  return permissoesDe(sessao.email, sessao.nome);
+}
+
+/** A sessão alcança esta rota, com este recorte? */
+async function podeBuscar(rota: string, busca: URLSearchParams): Promise<boolean> {
+  const minhas = await permissoesDaSessao();
+  if (!minhas) return process.env.NODE_ENV !== "production";
+  if (minhas.includes("administrador")) return true;
+  return permissoesQuePermitem(rota, busca).some((p) => minhas.includes(p));
+}
+
+async function ehAdministrador(): Promise<boolean> {
+  return (await permissoesDaSessao())?.includes("administrador") ?? false;
+}
+
+/**
+ * Qual permissão a rota exige — basta ter UMA da lista.
+ *
+ * Esconder o item do menu e recusar a página não protegem o dado: um `curl` com
+ * o cookie da sessão continuava trazendo o painel inteiro para quem não tinha
+ * permissão nenhuma. Encontrado testando exatamente isso.
+ *
+ * `painel/funil` depende do recorte pedido, porque é a mesma rota que serve as
+ * três áreas: quem só tem cobrança pode pedir o painel de cobrança e mais nada.
+ * Sem departamento é o painel comercial.
+ */
+function permissoesQuePermitem(rota: string, busca: URLSearchParams): readonly Permissao[] {
+  if (rota === "painel/funil") {
+    const departamento = busca.get("departamento");
+    if (departamento === "cobranca") return ["cobranca"];
+    if (departamento === "atendimento_ao_aluno") return ["atendimento"];
+    if (departamento === "nao_identificado") return ["administrador"];
+    return ["comercial"];
+  }
+  // Listas, filtros e etapas atravessam departamento por natureza — qualquer
+  // permissão operacional abre. É o mesmo limite anotado em `types/usuario.ts`:
+  // quem só tem cobrança enxerga conversa comercial na lista, e separar isso
+  // exige filtrar a lista pela permissão.
+  return ["comercial", "cobranca", "atendimento"];
+}
+
+async function encaminhar(
   req: NextRequest,
-  contexto: { params: Promise<{ caminho: string[] }> },
+  caminho: string[],
+  metodo: "GET" | "PUT",
 ): Promise<Response> {
-  const { caminho } = await contexto.params;
   const rota = caminho.join("/");
 
   const permitida = ROTAS.find(({ padrao }) => padrao.test(rota));
   if (!permitida) {
     return Response.json({ erro: "Rota não permitida." }, { status: 404 });
+  }
+
+  // Antes de qualquer coisa, inclusive do modo demonstração: administração de
+  // acesso não é dado de painel, e não deve ficar aberta nem com dado fictício.
+  if ("somenteAdmin" in permitida && permitida.somenteAdmin) {
+    if (!(await ehAdministrador())) {
+      return Response.json({ erro: "Requer permissão de administrador." }, { status: 403 });
+    }
+  } else if (!(await podeBuscar(rota, req.nextUrl.searchParams))) {
+    return Response.json({ erro: "Sem permissão para estes dados." }, { status: 403 });
   }
 
   const { modo, base, token } = configuracaoDoColetor();
@@ -172,11 +249,19 @@ export async function GET(
   // A query string passa inteira: os filtros do painel vivem nela.
   destino.search = req.nextUrl.search;
 
+  const corpoEnviado = metodo === "PUT" ? await req.text() : undefined;
+
   const controle = new AbortController();
   const limite = setTimeout(() => controle.abort(), TEMPO_LIMITE_MS);
   try {
     const resposta = await fetch(destino, {
-      headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+      method: metodo,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+        ...(corpoEnviado === undefined ? {} : { "Content-Type": "application/json" }),
+      },
+      body: corpoEnviado,
       signal: controle.signal,
       cache: "no-store",
     });
@@ -196,4 +281,19 @@ export async function GET(
   } finally {
     clearTimeout(limite);
   }
+}
+
+export async function GET(
+  req: NextRequest,
+  contexto: { params: Promise<{ caminho: string[] }> },
+): Promise<Response> {
+  return encaminhar(req, (await contexto.params).caminho, "GET");
+}
+
+/** Só a atribuição de permissões escreve. Nenhuma outra rota aceita PUT. */
+export async function PUT(
+  req: NextRequest,
+  contexto: { params: Promise<{ caminho: string[] }> },
+): Promise<Response> {
+  return encaminhar(req, (await contexto.params).caminho, "PUT");
 }
