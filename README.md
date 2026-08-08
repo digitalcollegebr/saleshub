@@ -153,49 +153,20 @@ Docker mata o container. Rota nova nasce fechada, que é a diferença entre
 No Next 16 o arquivo se chama `proxy.ts`; `middleware.ts` foi descontinuado e
 renomeado. Ele roda no runtime do Node, o que permite `node:crypto`.
 
-### Ligando pela primeira vez
-
-Só três variáveis são obrigatórias. O resto se configura **pela tela**, em
-Configurações → Entrada pelo Google, sem redeploy:
+### Variáveis
 
 | Variável | Como obter |
 |---|---|
-| `SESSAO_SEGREDO` | `openssl rand -base64 48`. Mínimo 32 caracteres. |
+| `SESSAO_SEGREDO` | `openssl rand -base64 48`. Mínimo 32 caracteres. Trocá-la derruba todas as sessões. |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google Cloud Console → APIs e Serviços → Credenciais → ID do cliente OAuth, tipo *Aplicativo da Web* |
+| `URL_PUBLICA` | `https://saleshub.digitalcollege.com.br`. Atrás do Traefik, o host que o Next enxerga é o interno — daí não dar para derivar do pedido. |
 | `ADMIN_EMAIL` | e-mail do usuário local |
 | `ADMIN_SENHA_HASH` | `sal:hash` em hex, gerado abaixo |
+| `ACESSOS` | opcional: `email:perfil,...`, só para **elevar** perfil |
+| `PERFIL_PADRAO` | opcional: perfil de quem é do domínio e não está em `ACESSOS`. Padrão `gestor_de_vendas`; vazio = só entra quem está mapeado |
 
-Depois, **entre com o usuário local** — ele é administrador por construção e não
-depende do banco. Em Configurações, cole o ID e o segredo do cliente OAuth; a
-própria tela mostra o URI de redirecionamento para colar no Google. A partir daí
-a equipe entra pelo domínio, e o administrador libera cada pessoa em Usuários.
-
-A ordem importa: entrar primeiro pelo Google levaria à tela de "peça acesso ao
-administrador", sem administrador nenhum para pedir.
-
-`SESSAO_SEGREDO` **também cifra a configuração**. Trocá-la derruba as sessões e
-torna ilegível o segredo do Google gravado — é preciso digitá-lo de novo.
-
-### Variáveis opcionais
-
-Estas existem para quem prefere configuração imutável. **A variável de ambiente
-vence a tela**: quando definida, o campo aparece marcado como "do ambiente" e
-bloqueado, em vez de aceitar uma edição que não teria efeito.
-
-| Variável | Efeito |
-|---|---|
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | fixa as credenciais OAuth |
-| `URL_PUBLICA` | base do URI de retorno. Atrás do Traefik o host que o Next enxerga é o interno. |
-| `DOMINIO_PERMITIDO` | padrão `digitalcollege.com.br` |
-
-### Permissões
-
-Quatro caixas, marcadas pelo administrador em **Usuários**: comercial, cobrança,
-atendimento, administrador. Quem autentica aparece na lista automaticamente, com
-nenhuma marcada, e vê só o aviso para procurar o administrador — autenticar não
-é autorizar.
-
-Vale na próxima tela que a pessoa abrir: a permissão é lida a cada pedido, não
-carimbada no cookie.
+No console do Google, o **URI de redirecionamento autorizado** precisa ser
+exatamente `https://saleshub.digitalcollege.com.br/api/auth/retorno`.
 
 Hash da senha local:
 

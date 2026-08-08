@@ -17,8 +17,8 @@ export const dynamic = "force-dynamic";
 /** Dez minutos: tempo de digitar a senha no Google, não mais. */
 const VALIDADE = 600;
 
-export async function GET(pedido: Request) {
-  if (!(await googleConfigurado())) {
+export function GET(pedido: Request) {
+  if (!googleConfigurado()) {
     return NextResponse.redirect(new URL("/entrar?erro=google_indisponivel", pedido.url));
   }
 
@@ -27,11 +27,9 @@ export async function GET(pedido: Request) {
   const nonce = aleatorio();
   const verificador = aleatorio();
   const desafio = createHash("sha256").update(verificador).digest("base64url");
-  const retorno = await urlDeRetorno(pedido);
+  const retorno = urlDeRetorno(pedido);
 
-  const resposta = NextResponse.redirect(
-    await urlDeAutorizacao({ retorno, state, nonce, desafio }),
-  );
+  const resposta = NextResponse.redirect(urlDeAutorizacao({ retorno, state, nonce, desafio }));
   const atributos = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

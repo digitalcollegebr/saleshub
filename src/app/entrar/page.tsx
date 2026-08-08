@@ -13,7 +13,6 @@
 
 import { adminLocalConfigurado } from "@/lib/acesso";
 import { sessaoConfigurada } from "@/lib/sessao";
-import { configuracaoDeAutenticacao } from "@/lib/configuracao";
 import { googleConfigurado } from "@/lib/google";
 import { SimboloDaMarca } from "@/components/layout/marca";
 import { MARCA } from "@/lib/brand";
@@ -91,7 +90,7 @@ export default async function PaginaDeEntrada({
           </p>
         )}
 
-        {(await googleConfigurado()) ? (
+        {googleConfigurado() ? (
           <a
             href={`/api/auth/entrar${destino ? `?destino=${encodeURIComponent(destino)}` : ""}`}
             className="bg-marca hover:bg-marca-clara flex h-11 w-full items-center justify-center rounded-full text-sm font-semibold text-white transition-colors"
@@ -105,7 +104,7 @@ export default async function PaginaDeEntrada({
         )}
 
         <p className="text-texto-fraco mt-3 text-center text-[11px]">
-          Somente contas @{(await configuracaoDeAutenticacao()).dominioPermitido}
+          Somente contas @{process.env.DOMINIO_PERMITIDO ?? "digitalcollege.com.br"}
         </p>
 
         {adminLocalConfigurado() && (

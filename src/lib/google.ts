@@ -22,15 +22,14 @@ import "server-only";
  * e está feito abaixo — é conferir `iss`, `aud`, `exp`, `nonce` e `hd`.
  */
 
-import { configuracaoDeAutenticacao } from "./configuracao";
+import { DOMINIO_PERMITIDO } from "./acesso";
 
 const AUTORIZACAO = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN = "https://oauth2.googleapis.com/token";
 const EMISSORES = new Set(["https://accounts.google.com", "accounts.google.com"]);
 
-export async function googleConfigurado(): Promise<boolean> {
-  const c = await configuracaoDeAutenticacao();
-  return Boolean(c.googleClientId && c.googleClientSecret);
+export function googleConfigurado(): boolean {
+  return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 }
 
 /**
@@ -39,21 +38,19 @@ export async function googleConfigurado(): Promise<boolean> {
  * duas variáveis que saem de sincronia — mas `URL_PUBLICA` vence quando existe,
  * porque atrás do Traefik o host que o Next enxerga pode ser o interno.
  */
-export async function urlDeRetorno(pedido: Request): Promise<string> {
-  const { urlPublica } = await configuracaoDeAutenticacao();
-  const base = urlPublica.replace(/\/$/, "") || new URL(pedido.url).origin;
+export function urlDeRetorno(pedido: Request): string {
+  const base = process.env.URL_PUBLICA?.replace(/\/$/, "") ?? new URL(pedido.url).origin;
   return `${base}/api/auth/retorno`;
 }
 
-export async function urlDeAutorizacao(opcoes: {
+export function urlDeAutorizacao(opcoes: {
   retorno: string;
   state: string;
   nonce: string;
   desafio: string;
-}): Promise<string> {
-  const config = await configuracaoDeAutenticacao();
+}): string {
   const url = new URL(AUTORIZACAO);
-  url.searchParams.set("client_id", config.googleClientId);
+  url.searchParams.set("client_id", process.env.GOOGLE_CLIENT_ID!);
   url.searchParams.set("redirect_uri", opcoes.retorno);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("scope", "openid email profile");
@@ -64,7 +61,7 @@ export async function urlDeAutorizacao(opcoes: {
   // `hd` faz o Google já mostrar só contas do domínio. É conveniência de tela,
   // NÃO segurança: o parâmetro viaja pelo navegador e pode ser trocado. Quem
   // decide é a conferência do `hd` no token, abaixo.
-  url.searchParams.set("hd", config.dominioPermitido);
+  url.searchParams.set("hd", DOMINIO_PERMITIDO);
   // Sem isto, quem tem várias contas Google entra direto na última usada e não
   // entende por que o acesso foi negado.
   url.searchParams.set("prompt", "select_account");
@@ -89,14 +86,13 @@ export async function identidadeDoCodigo(opcoes: {
   verificador: string;
   nonce: string;
 }): Promise<IdentidadeGoogle | null> {
-  const config = await configuracaoDeAutenticacao();
   const resposta = await fetch(TOKEN, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
       code: opcoes.codigo,
-      client_id: config.googleClientId,
-      client_secret: config.googleClientSecret,
+      client_id: process.env.GOOGLE_CLIENT_ID!,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET!,
       redirect_uri: opcoes.retorno,
       grant_type: "authorization_code",
       code_verifier: opcoes.verificador,
@@ -126,7 +122,7 @@ export async function identidadeDoCodigo(opcoes: {
   const dominio = String(dados.hd ?? "").toLowerCase();
 
   if (!EMISSORES.has(iss)) return null;
-  if (aud !== config.googleClientId) return null;
+  if (aud !== process.env.GOOGLE_CLIENT_ID) return null;
   if (!Number.isFinite(exp) || exp <= agora) return null;
   if (dados.nonce !== opcoes.nonce) return null;
   // `email_verified` importa: sem ele, uma conta poderia declarar um e-mail que
@@ -134,9 +130,8 @@ export async function identidadeDoCodigo(opcoes: {
   if (dados.email_verified !== true) return null;
   // A tranca do domínio. `hd` só existe em conta Workspace — conta pessoal
   // @gmail.com não tem o campo e cai aqui.
-  const permitido = config.dominioPermitido.toLowerCase();
-  if (dominio !== permitido) return null;
-  if (!email.endsWith(`@${permitido}`)) return null;
+  if (dominio !== DOMINIO_PERMITIDO) return null;
+  if (!email.endsWith(`@${DOMINIO_PERMITIDO}`)) return null;
 
   return {
     sub: String(dados.sub ?? email),
