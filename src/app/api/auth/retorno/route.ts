@@ -42,7 +42,7 @@ export async function GET(pedido: Request) {
 
   const identidade = await identidadeDoCodigo({
     codigo,
-    retorno: urlDeRetorno(pedido),
+    retorno: await urlDeRetorno(pedido),
     verificador: enviados.get("saleshub_pkce") ?? "",
     nonce: enviados.get("saleshub_nonce") ?? "",
   });

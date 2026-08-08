@@ -113,7 +113,7 @@ export const ITENS: readonly {
     rotulo: "Configurações",
     curto: "Config",
     Icone: Settings,
-    disponivel: false,
+    disponivel: true,
   },
 ];
 
