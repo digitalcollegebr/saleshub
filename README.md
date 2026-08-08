@@ -140,6 +140,69 @@ O que já está endurecido para o domínio público: `X-Frame-Options: DENY` e
 desligado, e `robots.txt` + meta tag bloqueando indexação — vale desde já, porque
 URL indexada circula e sair do índice depois dá mais trabalho que nunca entrar.
 
+## Autenticação
+
+Entrada pelo **Google Workspace**, restrita ao domínio `digitalcollege.com.br`,
+mais **um** usuário local para quando o Google estiver indisponível.
+
+`src/proxy.ts` é a tranca: roda antes de toda rota, e só `/entrar`, `/api/auth/*`
+e `/api/saude` passam sem sessão — o healthcheck precisa responder, senão o
+Docker mata o container. Rota nova nasce fechada, que é a diferença entre
+"protegido" e "protegido onde alguém lembrou".
+
+No Next 16 o arquivo se chama `proxy.ts`; `middleware.ts` foi descontinuado e
+renomeado. Ele roda no runtime do Node, o que permite `node:crypto`.
+
+### Variáveis
+
+| Variável | Como obter |
+|---|---|
+| `SESSAO_SEGREDO` | `openssl rand -base64 48`. Mínimo 32 caracteres. Trocá-la derruba todas as sessões. |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google Cloud Console → APIs e Serviços → Credenciais → ID do cliente OAuth, tipo *Aplicativo da Web* |
+| `URL_PUBLICA` | `https://saleshub.digitalcollege.com.br`. Atrás do Traefik, o host que o Next enxerga é o interno — daí não dar para derivar do pedido. |
+| `ADMIN_EMAIL` | e-mail do usuário local |
+| `ADMIN_SENHA_HASH` | `sal:hash` em hex, gerado abaixo |
+| `ACESSOS` | opcional: `email:perfil,...`, só para **elevar** perfil |
+| `PERFIL_PADRAO` | opcional: perfil de quem é do domínio e não está em `ACESSOS`. Padrão `gestor_de_vendas`; vazio = só entra quem está mapeado |
+
+No console do Google, o **URI de redirecionamento autorizado** precisa ser
+exatamente `https://saleshub.digitalcollege.com.br/api/auth/retorno`.
+
+Hash da senha local:
+
+```bash
+node -e "const c=require('node:crypto');const s=c.randomBytes(16).toString('hex');console.log(s+':'+c.scryptSync(process.argv[1],s,64).toString('hex'))" 'a-senha-aqui'
+```
+
+### O que é conferido no retorno do Google
+
+`iss`, `aud`, `exp`, `nonce`, `email_verified` e o `hd` — a claim de domínio, que
+só existe em conta Workspace. Conta `@gmail.com` não tem o campo e é recusada
+ali. O parâmetro `hd` na URL de autorização é conveniência de tela, **não**
+segurança: ele viaja pelo navegador e pode ser trocado.
+
+A assinatura do ID token não é verificada, e isso é deliberado: o token não passa
+pelo navegador, é buscado por este servidor no endpoint do Google sobre TLS. O
+OIDC Core §3.1.3.7 dispensa a checagem nesse caso, porque a autenticidade vem do
+canal.
+
+`state`, `nonce` e PKCE protegem, respectivamente, contra login CSRF, reúso de
+token e vazamento do código de autorização em log de proxy.
+
+### Sessão
+
+Cookie assinado com HMAC-SHA256, sem estado no servidor. `HttpOnly` — XSS não
+alcança —, `Secure` e `SameSite=Lax`, que deixa o retorno do Google passar e
+barra POST de outro site. Dura 12 h.
+
+Não há revogação individual: para derrubar todas as sessões, troque
+`SESSAO_SEGREDO`.
+
+### Painel de TV
+
+`/tv` também exige sessão. Numa TV ligada por meses, entre uma vez com o usuário
+local; se 12 h for curto para esse uso, a duração está em `src/lib/sessao.ts`.
+
 ## Configuração
 
 ```bash

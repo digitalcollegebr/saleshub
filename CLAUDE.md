@@ -65,6 +65,17 @@ booleano paralelo de "é inferido".
 seguem o vocabulário de quem usa a ferramenta (`Conversa`, `Atendente`,
 `EtapaDoFunil`, `obterPainelDoFunil`). Comentários explicam _por quê_, não _o quê_.
 
+**A tranca é `src/proxy.ts`, e ela é única.** Roda antes de toda rota; só
+`/entrar`, `/api/auth/*` e `/api/saude` passam sem sessão. Rota nova nasce
+fechada. No Next 16 o arquivo se chama `proxy.ts` — `middleware.ts` foi
+descontinuado e renomeado — e roda no runtime do Node, o que permite
+`node:crypto`. Página recusada redireciona; API recusada responde **401**, porque
+HTML de login devolvido a um `fetch` faria o React Query acusar "formato
+inesperado" em vez de "sessão caiu". `autorizado()` no proxy de dados é a segunda
+tranca, de propósito: um `matcher` mal editado é tudo que separa uma rota de ficar
+aberta. Entrada é por domínio (`hd` do ID token, não lista local); `ACESSOS` só
+eleva perfil. `PERMITIR_SEM_SESSAO` é ignorado em produção.
+
 **Nada de `NEXT_PUBLIC_*` para configuração de dados.** O Next grava esses valores
 literalmente no bundle: um token ali é público e trocar de modo viraria rebuild.
 `API_URL` e `SALESHUB_TOKEN` são variáveis de servidor, lidas em execução.
