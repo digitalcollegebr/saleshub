@@ -162,8 +162,18 @@ renomeado. Ele roda no runtime do Node, o que permite `node:crypto`.
 | `URL_PUBLICA` | `https://saleshub.digitalcollege.com.br`. Atrás do Traefik, o host que o Next enxerga é o interno — daí não dar para derivar do pedido. |
 | `ADMIN_EMAIL` | e-mail do usuário local |
 | `ADMIN_SENHA_HASH` | `sal:hash` em hex, gerado abaixo |
-| `ACESSOS` | opcional: `email:perfil,...`, só para **elevar** perfil |
-| `PERFIL_PADRAO` | opcional: perfil de quem é do domínio e não está em `ACESSOS`. Padrão `gestor_de_vendas`; vazio = só entra quem está mapeado |
+| `DOMINIO_PERMITIDO` | opcional. Padrão `digitalcollege.com.br` |
+
+Permissão **não** é variável de ambiente: são quatro caixas — comercial,
+cobrança, atendimento, administrador — marcadas em **Usuários** pelo
+administrador. Quem autentica aparece na lista automaticamente, com nenhuma
+marcada, e vê só o aviso para procurar o administrador. Autenticar não é
+autorizar, e a permissão é lida a cada pedido, não carimbada no cookie.
+
+Na primeira vez, **entre com o usuário local** — ele é administrador por
+construção e não depende do banco. É por ele que você abre `/usuarios` e marca
+as próprias caixas da conta do Google. Entrar primeiro pelo Google levaria à tela
+de "peça acesso ao administrador", sem administrador nenhum para pedir.
 
 No console do Google, o **URI de redirecionamento autorizado** precisa ser
 exatamente `https://saleshub.digitalcollege.com.br/api/auth/retorno`.
