@@ -26,8 +26,15 @@ import { urlDoApp } from "@/lib/url";
  * Lista curta e fechada, por prefixo exato. `/api/saude` fica aberta porque é o
  * healthcheck do container — se ela exigisse sessão, o Docker mataria o serviço
  * por não conseguir provar que ele está vivo.
+ *
+ * `/tv` é a TV da sala: ela fica ligada meses, e uma sessão que expira de
+ * madrugada vira tela de login na parede até alguém reparar. Abrir a página não
+ * basta — ela busca dados em `/api/dados/painel/funil`, e a liberação
+ * correspondente está lá, restrita a essa rota. O que fica público com isso está
+ * escrito em `QUIOSQUE`, no proxy de dados: agregados e ranking por atendente,
+ * nunca conversa de cliente.
  */
-const ABERTAS = ["/entrar", "/api/auth/", "/api/saude"];
+const ABERTAS = ["/entrar", "/api/auth/", "/api/saude", "/tv"];
 
 export function proxy(pedido: NextRequest) {
   const { pathname } = pedido.nextUrl;

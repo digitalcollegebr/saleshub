@@ -181,6 +181,37 @@ async function ehAdministrador(): Promise<boolean> {
 }
 
 /**
+ * O buraco do quiosque: o que a TV da sala lê sem sessão.
+ *
+ * A TV fica ligada meses numa parede. Sessão federada expira, e o que aparece na
+ * reunião é a tela de login — daí `/tv` passar sem cookie (ver `ABERTAS` em
+ * `proxy.ts`). Só que a página busca dados, então a liberação precisa alcançar a
+ * rota que ela consome, e **apenas** ela.
+ *
+ * **O que isto torna público, para quem souber a URL:** os agregados das três
+ * áreas — volume, primeira resposta, qualidade, sentimento, etapas do funil,
+ * objeções, cursos — e o `ranking`, que traz nome e desempenho por atendente.
+ * Não é só número. O que continua fechado é `/conversas`: nome, telefone e
+ * conteúdo de cliente exigem sessão e permissão como antes.
+ *
+ * Lista fechada, e por isso `departamento` também é conferido: `painel/funil` é
+ * a mesma rota para as três áreas, e `nao_identificado` — que exige
+ * administrador no caminho autenticado — fica de fora justamente por não ser um
+ * dos três rodízios da TV. Deixar o parâmetro livre abriria pelo quiosque um
+ * recorte que a permissão nega.
+ */
+const QUIOSQUE = {
+  rota: "painel/funil",
+  departamentos: new Set(["", "cobranca", "atendimento_ao_aluno"]),
+} as const;
+
+function ehPedidoDoQuiosque(rota: string, busca: URLSearchParams, metodo: string): boolean {
+  if (metodo !== "GET") return false;
+  if (rota !== QUIOSQUE.rota) return false;
+  return QUIOSQUE.departamentos.has(busca.get("departamento") ?? "");
+}
+
+/**
  * Qual permissão a rota exige — basta ter UMA da lista.
  *
  * Esconder o item do menu e recusar a página não protegem o dado: um `curl` com
@@ -220,11 +251,13 @@ async function encaminhar(
 
   // Antes de qualquer coisa, inclusive do modo demonstração: administração de
   // acesso não é dado de painel, e não deve ficar aberta nem com dado fictício.
+  const doQuiosque = ehPedidoDoQuiosque(rota, req.nextUrl.searchParams, metodo);
+
   if ("somenteAdmin" in permitida && permitida.somenteAdmin) {
     if (!(await ehAdministrador())) {
       return Response.json({ erro: "Requer permissão de administrador." }, { status: 403 });
     }
-  } else if (!(await podeBuscar(rota, req.nextUrl.searchParams))) {
+  } else if (!doQuiosque && !(await podeBuscar(rota, req.nextUrl.searchParams))) {
     return Response.json({ erro: "Sem permissão para estes dados." }, { status: 403 });
   }
 
@@ -241,7 +274,7 @@ async function encaminhar(
     return Response.json(dados, { headers: { "x-origem-dos-dados": "mock" } });
   }
 
-  if (!(await autorizado())) {
+  if (!doQuiosque && !(await autorizado())) {
     return Response.json({ erro: "Não autenticado." }, { status: 401 });
   }
 
