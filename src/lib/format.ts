@@ -94,3 +94,26 @@ export function formatarPorFormato(
       return formatarInteiro(valor);
   }
 }
+
+/**
+ * Telefone brasileiro legível, sem alterar o dado.
+ *
+ * O que chega é só dígitos com DDI (5585999999999). A formatação é de **exibição**:
+ * o valor original continua no `Classificado` e no banco, porque é ele que o time
+ * copia para buscar a pessoa nos outros sistemas.
+ *
+ * Número fora do formato esperado sai como veio — inventar uma máscara sobre um
+ * número estrangeiro ou truncado esconderia justamente o que há de errado nele.
+ */
+export function formatarTelefone(bruto: string | null | undefined): string {
+  if (!bruto) return "—";
+  const digitos = bruto.replace(/\D/g, "");
+  const nacional = digitos.startsWith("55") ? digitos.slice(2) : digitos;
+  if (nacional.length === 11) {
+    return `(${nacional.slice(0, 2)}) ${nacional.slice(2, 7)}-${nacional.slice(7)}`;
+  }
+  if (nacional.length === 10) {
+    return `(${nacional.slice(0, 2)}) ${nacional.slice(2, 6)}-${nacional.slice(6)}`;
+  }
+  return bruto;
+}

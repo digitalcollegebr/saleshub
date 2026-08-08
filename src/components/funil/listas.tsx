@@ -23,6 +23,7 @@ import {
 } from "@/types";
 import { formatarDuracao } from "@/lib/format";
 import { SeloDeOrigem } from "@/components/dados/selo-origem";
+import { IdentificacaoDoLead } from "@/components/dados/identificacao-do-lead";
 
 const VARIANTE_DO_MOTIVO: Record<MotivoDeAtencao, "critico" | "atencao" | "neutro"> = {
   sem_resposta_do_atendente: "critico",
@@ -66,7 +67,11 @@ export function ConversasComAtencao({
                   className="hover:bg-fundo-sutil focus:ring-marca/40 flex items-start justify-between gap-3 py-2.5 transition-colors focus:ring-2 focus:outline-none"
                 >
                   <div className="min-w-0">
-                    <p className="text-texto truncate text-sm font-medium">{item.leadNome}</p>
+                    <IdentificacaoDoLead
+                      nome={item.leadNome}
+                      telefone={item.leadTelefone}
+                      className="text-texto block text-sm font-medium"
+                    />
                     <p className="text-texto-fraco truncate text-xs">{item.detalheDoMotivo}</p>
                     <p className="text-texto-fraco mt-1 text-[11px]">
                       {item.atendenteNome ?? "Sem atendente"}
@@ -120,7 +125,8 @@ export function OportunidadesEmAberto({ itens }: { itens: readonly OportunidadeE
                   <div className="min-w-0">
                     <p className="text-texto truncate text-sm font-medium">{item.proximoPasso}</p>
                     <p className="text-texto-fraco truncate text-xs">
-                      {item.leadNome} · {item.cursoNome ?? "Curso não identificado"}
+                      <IdentificacaoDoLead nome={item.leadNome} telefone={item.leadTelefone} /> ·{" "}
+                      {item.cursoNome ?? "Curso não identificado"}
                     </p>
                     <p className="text-texto-fraco mt-1 text-[11px]">
                       {item.atendenteNome ?? "Sem atendente"} · {item.etapaDoFunil}

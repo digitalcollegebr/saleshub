@@ -205,7 +205,10 @@ export interface Conversa {
 export interface ConversaResumida {
   readonly id: string;
   readonly protocolo: string;
-  readonly leadNome: string;
+  /** Nulo quando o SZ Chat não mandou nome — nem cadastro, nem push do WhatsApp. */
+  readonly leadNome: string | null;
+  /** Só dígitos, com DDI. É a chave que o time usa para achar a pessoa. */
+  readonly leadTelefone: string | null;
   readonly atendenteNome: string | null;
   readonly campanhaNome: string | null;
   readonly cursoNome: string | null;

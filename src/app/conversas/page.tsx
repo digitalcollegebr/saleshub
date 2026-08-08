@@ -15,6 +15,7 @@ import { BarraDeFiltros } from "@/components/filtros/barra-de-filtros";
 import { Card, CardConteudo } from "@/components/ui/card";
 import { EsqueletoDeBloco, EstadoDeErro, EstadoVazio } from "@/components/dados/estados";
 import { SeloDeOrigem } from "@/components/dados/selo-origem";
+import { IdentificacaoDoLead } from "@/components/dados/identificacao-do-lead";
 import { useConversas } from "@/hooks/use-dados";
 import { useFiltros } from "@/hooks/use-filtros";
 import { formatarDataHora, formatarDuracao, formatarInteiro } from "@/lib/format";
@@ -68,7 +69,11 @@ function Conteudo() {
                   <li key={c.id}>
                     <Link href={`/conversas/${c.id}`} className="hover:bg-fundo-sutil block p-4">
                       <div className="flex items-start justify-between gap-3">
-                        <span className="text-texto font-medium">{c.leadNome || "Sem nome"}</span>
+                        <IdentificacaoDoLead
+                          nome={c.leadNome}
+                          telefone={c.leadTelefone}
+                          className="text-texto font-medium"
+                        />
                         <span className="text-texto-fraco shrink-0 text-[11px] whitespace-nowrap">
                           {formatarDataHora(c.iniciadaEm)}
                         </span>
@@ -113,7 +118,7 @@ function Conteudo() {
                             href={`/conversas/${c.id}`}
                             className="text-texto hover:text-marca font-medium"
                           >
-                            {c.leadNome || "Sem nome"}
+                            <IdentificacaoDoLead nome={c.leadNome} telefone={c.leadTelefone} />
                           </Link>
                         </td>
                         <td className="text-texto-fraco px-4 py-2.5">{c.atendenteNome ?? "—"}</td>

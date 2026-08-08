@@ -104,6 +104,7 @@ function resumir(c: ConversaGerada): ConversaResumida {
     id: c.id,
     protocolo: c.protocolo,
     leadNome: c.lead.nome,
+    leadTelefone: c.lead.telefone,
     atendenteNome: nomeDoAtendente(c.atendenteId),
     campanhaNome: nomeDaCampanha(c.campanhaId),
     cursoNome: nomeDoCurso(c.analise.cursoDeInteresseId.valor),
@@ -605,6 +606,7 @@ export class ApiMock implements SalesHubApi {
         return {
           conversaId: c.id,
           leadNome: c.lead.nome,
+          leadTelefone: c.lead.telefone,
           atendenteNome: nomeDoAtendente(c.atendenteId),
           cursoNome: nomeDoCurso(c.analise.cursoDeInteresseId.valor),
           proximoPasso: passo.descricao,
