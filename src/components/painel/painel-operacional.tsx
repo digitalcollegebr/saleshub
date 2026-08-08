@@ -87,7 +87,7 @@ export function PainelOperacional({ titulo, descricao }: { titulo: string; descr
               <button
                 type="button"
                 onClick={limpar}
-                className="border-borda text-texto hover:bg-fundo-sutil focus:ring-marca/40 mt-1 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors focus:ring-2 focus:outline-none"
+                className="border-borda text-texto hover:bg-fundo-sutil focus:ring-marca/40 rounded-controle mt-1 border px-3 py-1.5 text-xs font-medium transition-colors focus:ring-2 focus:outline-none"
               >
                 Limpar filtros
               </button>

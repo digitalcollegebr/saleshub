@@ -27,7 +27,7 @@ export function Tooltip({
           align="center"
           sideOffset={6}
           className={cn(
-            "border-borda bg-superficie text-texto z-50 rounded-md border px-3 py-2 text-xs leading-relaxed shadow-lg",
+            "border-borda bg-superficie text-texto rounded-controle z-50 border px-3 py-2 text-xs leading-relaxed shadow-lg",
             larguraMaxima,
           )}
         >

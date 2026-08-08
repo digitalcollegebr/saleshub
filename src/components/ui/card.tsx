@@ -4,7 +4,9 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   return (
     <div
       className={cn(
-        "border-borda bg-superficie rounded-lg border shadow-[0_1px_2px_rgba(15,23,42,0.04)]",
+        // Raio 20px e separação por tom, não por borda forte: é assim que os
+        // cards de formação do site se destacam do preto.
+        "border-borda bg-superficie rounded-cartao border shadow-[0_1px_2px_rgba(0,0,0,0.4)]",
         className,
       )}
       {...props}

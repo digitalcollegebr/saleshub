@@ -49,7 +49,7 @@ function Conteudo() {
               <button
                 type="button"
                 onClick={limpar}
-                className="border-borda text-texto hover:bg-fundo-sutil mt-1 rounded-md border px-3 py-1.5 text-xs font-medium"
+                className="border-borda text-texto hover:bg-fundo-sutil rounded-controle mt-1 border px-3 py-1.5 text-xs font-medium"
               >
                 Limpar filtros
               </button>
@@ -125,7 +125,7 @@ function Conteudo() {
                 type="button"
                 onClick={() => setPagina((p) => Math.max(1, p - 1))}
                 disabled={pagina <= 1}
-                className="border-borda hover:bg-fundo-sutil inline-flex h-8 items-center gap-1 rounded-md border px-2.5 disabled:opacity-40"
+                className="border-borda hover:bg-fundo-sutil rounded-controle inline-flex h-8 items-center gap-1 border px-2.5 disabled:opacity-40"
               >
                 <ChevronLeft className="size-3.5" aria-hidden="true" />
                 Anterior
@@ -134,7 +134,7 @@ function Conteudo() {
                 type="button"
                 onClick={() => setPagina((p) => p + 1)}
                 disabled={pagina >= ultimaPagina}
-                className="border-borda hover:bg-fundo-sutil inline-flex h-8 items-center gap-1 rounded-md border px-2.5 disabled:opacity-40"
+                className="border-borda hover:bg-fundo-sutil rounded-controle inline-flex h-8 items-center gap-1 border px-2.5 disabled:opacity-40"
               >
                 Próxima
                 <ChevronRight className="size-3.5" aria-hidden="true" />

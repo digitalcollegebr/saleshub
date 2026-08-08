@@ -1,34 +1,38 @@
 @import "tailwindcss";
 
 /**
- * Tokens da interface.
+ * Tokens da interface — identidade Digital College.
  *
  * Os valores de marca vivem em `src/lib/brand.ts`; aqui eles viram variáveis CSS
- * para que nenhum componente escreva cor literal. Trocar a identidade é editar
- * aquele arquivo e estas linhas.
+ * para que nenhum componente escreva cor literal.
+ *
+ * **Tema único, escuro.** O site da Digital College apresenta o conteúdo sobre
+ * preto, e este painel já era escuro. Seguir `prefers-color-scheme` exigiria
+ * calibrar duas vezes cada gráfico, cada selo de origem e cada um dos três
+ * estados de ausência — e a metade clara nunca seria olhada. Um tema só é um
+ * tema que se mantém correto.
  */
 :root {
-  --cor-fundo: #f6f7f9;
-  --cor-fundo-sutil: #eef1f5;
-  --cor-superficie: #ffffff;
-  --cor-borda: #e2e6ec;
-  --cor-texto: #101828;
-  --cor-texto-fraco: #5b6879;
-  --cor-marca: #1d4ed8;
-  --cor-marca-suave: #eff4ff;
-}
+  color-scheme: dark;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --cor-fundo: #0b1117;
-    --cor-fundo-sutil: #151d27;
-    --cor-superficie: #111823;
-    --cor-borda: #212c3a;
-    --cor-texto: #e7edf4;
-    --cor-texto-fraco: #8fa0b3;
-    --cor-marca: #6a9bff;
-    --cor-marca-suave: #16223a;
-  }
+  /* Preto da instituição. O cartão sobe um degrau em vez de usar borda forte:
+     é como os cards de formação do site se separam do fundo. */
+  --cor-fundo: #0b0b0c;
+  --cor-fundo-sutil: #17171a;
+  --cor-superficie: #141416;
+  --cor-borda: #26262b;
+
+  --cor-texto: #f4f4f5;
+  --cor-texto-fraco: #a1a1aa;
+
+  --cor-marca: #c61066;
+  --cor-marca-clara: #e0177a;
+  --cor-marca-suave: #2a0c1c;
+
+  /* Raio de card do site. Botão e pílula usam 999px (lá são 50px num botão
+     baixo, que dá no mesmo). */
+  --raio-cartao: 20px;
+  --raio-controle: 10px;
 }
 
 @theme inline {
@@ -39,23 +43,31 @@
   --color-texto: var(--cor-texto);
   --color-texto-fraco: var(--cor-texto-fraco);
   --color-marca: var(--cor-marca);
+  --color-marca-clara: var(--cor-marca-clara);
   --color-marca-suave: var(--cor-marca-suave);
+
+  --radius-cartao: var(--raio-cartao);
+  --radius-controle: var(--raio-controle);
+
+  /* Montserrat entra por `next/font` no layout, que define esta variável. */
+  --font-sans: var(--fonte-montserrat), ui-sans-serif, system-ui, sans-serif;
 }
 
 html {
-  color-scheme: light dark;
+  color-scheme: dark;
 }
 
 body {
   background: var(--cor-fundo);
   color: var(--cor-texto);
-  font-feature-settings: "cv02", "cv03", "cv04";
   -webkit-font-smoothing: antialiased;
 }
 
-/* Foco visível em tudo que recebe teclado — requisito de acessibilidade, não estilo. */
+/* Foco visível em tudo que recebe teclado — requisito de acessibilidade, não
+   estilo. Fica claro, e não magenta: sobre o magenta de um botão selecionado o
+   próprio magenta desapareceria. */
 :focus-visible {
-  outline: 2px solid var(--cor-marca);
+  outline: 2px solid var(--cor-texto);
   outline-offset: 2px;
 }
 

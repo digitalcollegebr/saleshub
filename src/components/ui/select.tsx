@@ -23,7 +23,7 @@ export function Select({
       </span>
       <select
         className={cn(
-          "border-borda bg-superficie text-texto h-9 rounded-md border px-2.5 text-sm",
+          "border-borda bg-superficie text-texto rounded-controle h-9 border px-2.5 text-sm",
           "focus:border-marca focus:ring-marca/30 focus:ring-2 focus:outline-none",
           className,
         )}

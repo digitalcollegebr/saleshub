@@ -21,6 +21,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { MARCA } from "@/lib/brand";
+import { FundoDaMarca, SimboloDaMarca } from "./marca";
 import { cn } from "@/lib/utils";
 import { useOrigemDosDados, useUsuario } from "@/hooks/use-dados";
 import { Badge } from "@/components/ui/badge";
@@ -100,13 +101,7 @@ function secaoDoCaminho(caminho: string): { titulo: string; subtitulo: string } 
 function Marca() {
   return (
     <div className="flex items-center gap-2.5">
-      <span
-        className="grid size-8 shrink-0 place-items-center rounded-md text-xs font-bold text-white"
-        style={{ background: MARCA.cores.primaria }}
-        aria-hidden="true"
-      >
-        {MARCA.monograma}
-      </span>
+      <SimboloDaMarca tamanho={32} />
       <span className="min-w-0">
         <span className="text-texto block truncate text-sm leading-tight font-semibold">
           {MARCA.produto}
@@ -127,7 +122,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const secao = secaoDoCaminho(caminho);
 
   return (
-    <div className="bg-fundo flex min-h-dvh">
+    <div className="flex min-h-dvh">
+      <FundoDaMarca />
       <aside className="border-borda bg-superficie hidden w-60 shrink-0 flex-col border-r lg:flex">
         <div className="border-borda border-b p-4">
           <Marca />
@@ -145,7 +141,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </>
             );
             const classe = cn(
-              "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors",
+              "flex items-center gap-2.5 rounded-controle px-2.5 py-2 text-sm transition-colors",
               ativo
                 ? "bg-marca-suave font-medium text-marca"
                 : "text-texto-fraco hover:bg-fundo-sutil hover:text-texto",

@@ -41,7 +41,7 @@ function CaixaDoTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="border-borda bg-superficie rounded-md border px-3 py-2 text-xs shadow-lg">
+    <div className="border-borda bg-superficie rounded-controle border px-3 py-2 text-xs shadow-lg">
       {label && <p className="text-texto mb-1 font-medium">{label}</p>}
       {payload.map((linha, i) => (
         <p key={i} className="text-texto-fraco flex items-center gap-2">
@@ -228,7 +228,7 @@ export function GraficoDeDistribuicao({
                     if (!active || !payload?.length) return null;
                     const item = payload[0].payload as ItemDeDistribuicao;
                     return (
-                      <div className="border-borda bg-superficie rounded-md border px-3 py-2 text-xs shadow-lg">
+                      <div className="border-borda bg-superficie rounded-controle border px-3 py-2 text-xs shadow-lg">
                         <p className="text-texto font-medium">{item.rotulo}</p>
                         <p className="text-texto-fraco">
                           {formatarInteiro(item.total)} conversas ·{" "}

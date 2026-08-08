@@ -115,7 +115,7 @@ export function ValorClassificado<T>({
  */
 export function AvisoDeConfirmacaoExterna({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900 dark:border-amber-900 dark:bg-amber-950/60 dark:text-amber-200">
+    <div className="rounded-controle flex items-start gap-2 border border-amber-900 bg-amber-950/60 px-3 py-2 text-xs leading-relaxed text-amber-200">
       <Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
       <p>{children}</p>
     </div>

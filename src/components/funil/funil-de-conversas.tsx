@@ -65,7 +65,7 @@ function LinhaDaEtapa({
     >
       <Link
         href={href}
-        className="hover:bg-fundo-sutil focus:ring-marca/40 grid grid-cols-[minmax(8rem,12rem)_1fr_auto] items-center gap-3 rounded-md px-1 py-1.5 transition-colors focus:ring-2 focus:outline-none"
+        className="hover:bg-fundo-sutil focus:ring-marca/40 rounded-controle grid grid-cols-[minmax(8rem,12rem)_1fr_auto] items-center gap-3 px-1 py-1.5 transition-colors focus:ring-2 focus:outline-none"
       >
         <span className="text-texto truncate text-xs font-medium" title={etapa.rotulo}>
           {etapa.rotulo}

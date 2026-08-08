@@ -81,7 +81,7 @@ export function BarraDeFiltros({ recortesComerciais = true }: { recortesComercia
 
   if (isPending) {
     return (
-      <div className="border-borda bg-superficie flex flex-wrap items-end gap-3 rounded-lg border p-3">
+      <div className="border-borda bg-superficie rounded-cartao flex flex-wrap items-end gap-3 border p-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <Skeleton key={i} className="h-14 w-36" />
         ))}
@@ -92,21 +92,21 @@ export function BarraDeFiltros({ recortesComerciais = true }: { recortesComercia
   return (
     <section
       aria-label="Filtros do painel"
-      className="border-borda bg-superficie flex flex-wrap items-end gap-3 rounded-lg border p-3"
+      className="border-borda bg-superficie rounded-cartao flex flex-wrap items-end gap-3 border p-3"
     >
       <fieldset className="flex flex-col gap-1">
         <legend className="sr-only">Período</legend>
         <span className="text-texto-fraco text-[11px] font-medium tracking-wide uppercase">
           Período
         </span>
-        <div className="border-borda flex overflow-hidden rounded-md border">
+        <div className="border-borda flex overflow-hidden rounded-full border">
           {PERIODOS.map((p) => (
             <button
               key={p.chave}
               type="button"
               onClick={() => aplicarPeriodo(p.chave)}
               aria-pressed={ativo === p.chave}
-              className={`focus:ring-marca/40 px-3 py-1.5 text-xs font-medium transition-colors focus:ring-2 focus:outline-none focus:ring-inset ${
+              className={`focus:ring-marca/40 px-4 py-1.5 text-xs font-semibold transition-colors focus:ring-2 focus:outline-none focus:ring-inset ${
                 ativo === p.chave
                   ? "bg-marca text-white"
                   : "bg-superficie text-texto-fraco hover:bg-fundo-sutil"
@@ -134,7 +134,7 @@ export function BarraDeFiltros({ recortesComerciais = true }: { recortesComercia
             value={comoDataLocal(filtros.periodoInicio)}
             max={comoDataLocal(filtros.periodoFim)}
             onChange={(e) => aplicarData("de", e.target.value)}
-            className="border-borda bg-superficie text-texto focus:border-marca focus:ring-marca/30 h-9 rounded-md border px-2 text-sm focus:ring-2 focus:outline-none"
+            className="border-borda bg-superficie text-texto focus:border-marca focus:ring-marca/30 rounded-controle h-9 border px-2 text-sm focus:ring-2 focus:outline-none"
           />
           <span className="text-texto-fraco text-xs">até</span>
           <input
@@ -144,11 +144,11 @@ export function BarraDeFiltros({ recortesComerciais = true }: { recortesComercia
             value={comoDataLocal(filtros.periodoFim)}
             min={comoDataLocal(filtros.periodoInicio)}
             onChange={(e) => aplicarData("ate", e.target.value)}
-            className="border-borda bg-superficie text-texto focus:border-marca focus:ring-marca/30 h-9 rounded-md border px-2 text-sm focus:ring-2 focus:outline-none"
+            className="border-borda bg-superficie text-texto focus:border-marca focus:ring-marca/30 rounded-controle h-9 border px-2 text-sm focus:ring-2 focus:outline-none"
           />
         </div>
         {periodoInvertido && (
-          <p role="alert" className="text-[11px] text-red-700 dark:text-red-300">
+          <p role="alert" className="text-[11px] text-red-300">
             A data final é anterior à inicial — nenhum recorte cabe aí.
           </p>
         )}
@@ -271,7 +271,7 @@ export function BarraDeFiltros({ recortesComerciais = true }: { recortesComercia
         <button
           type="button"
           onClick={limpar}
-          className="border-borda text-texto-fraco hover:bg-fundo-sutil focus:ring-marca/40 mb-0.5 inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors focus:ring-2 focus:outline-none"
+          className="border-borda text-texto-fraco hover:bg-fundo-sutil focus:ring-marca/40 mb-0.5 inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-xs font-semibold transition-colors focus:ring-2 focus:outline-none"
         >
           <FilterX className="size-3.5" aria-hidden="true" />
           Limpar
