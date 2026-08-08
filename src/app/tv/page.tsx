@@ -280,7 +280,10 @@ function Barras({
       <h2 className="text-texto-fraco shrink-0 text-[clamp(0.7rem,1vw,1.05rem)] font-semibold tracking-wide uppercase">
         {titulo}
       </h2>
-      <ul className="mt-[1.2vh] flex min-h-0 flex-1 flex-col justify-around gap-[0.6vh]">
+      {/* Alinhado ao topo, não distribuído: `justify-around` fica bem com as dez
+          etapas do funil e péssimo com as duas barras de sentimento — dois itens
+          espalhados numa caixa alta leem como dado faltando. */}
+      <ul className="mt-[1.5vh] flex min-h-0 flex-1 flex-col gap-[1.4vh] overflow-hidden">
         {itens.map((i) => (
           <li key={i.rotulo} className="flex items-center gap-[1vw]">
             <span className="text-texto-fraco w-[26%] shrink-0 truncate text-[clamp(0.65rem,1vw,1.1rem)]">
