@@ -64,6 +64,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const secao = secaoDoCaminho(caminho);
   const gaveta = useGaveta();
 
+  // O painel de TV ocupa a tela inteira: barra lateral e cabeçalho roubariam
+  // área útil e não servem a ninguém do outro lado da sala. Ver app/tv/page.tsx.
+  if (caminho.startsWith("/tv")) return <>{children}</>;
+
   return (
     <div className="flex min-h-dvh">
       <FundoDaMarca />

@@ -23,6 +23,7 @@ import {
   Megaphone,
   MessagesSquare,
   Receipt,
+  MonitorPlay,
   Settings,
   ShieldCheck,
   X,
@@ -71,6 +72,14 @@ export const ITENS: readonly {
     rotulo: "Conversas",
     curto: "Conversas",
     Icone: MessagesSquare,
+    disponivel: true,
+  },
+  {
+    area: "tv",
+    href: "/tv",
+    rotulo: "Painel de TV",
+    curto: "TV",
+    Icone: MonitorPlay,
     disponivel: true,
   },
   {

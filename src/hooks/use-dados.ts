@@ -56,11 +56,19 @@ export function useOpcoesDeFiltro() {
   });
 }
 
-export function usePainelDoFunil(filtros: FiltrosDoPainel) {
+/**
+ * `atualizarACada` existe para o painel de TV, que fica ligado o dia inteiro sem
+ * ninguém tocar. `placeholderData` mantendo o valor anterior é o que evita a tela
+ * piscar em esqueleto a cada atualização — numa TV isso seria visível da porta.
+ */
+export function usePainelDoFunil(filtros: FiltrosDoPainel, atualizarACada?: number) {
   return useQuery({
     queryKey: chave.painel(filtros),
     queryFn: () => api.obterPainelDoFunil(filtros),
     placeholderData: (anterior) => anterior,
+    refetchInterval: atualizarACada,
+    // Sem isto o `staleTime` global de 60s engoliria a atualização periódica.
+    staleTime: atualizarACada ? 0 : undefined,
   });
 }
 

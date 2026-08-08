@@ -24,7 +24,14 @@ export const ROTULO_PERFIL: Record<PerfilDeAcesso, string> = {
 
 /** Áreas da aplicação, para o menu e para o controle de acesso futuro. */
 export type AreaDaAplicacao =
-  "funil" | "cobranca" | "atendimento" | "conversas" | "marketing" | "qualidade" | "configuracoes";
+  | "funil"
+  | "cobranca"
+  | "atendimento"
+  | "conversas"
+  | "tv"
+  | "marketing"
+  | "qualidade"
+  | "configuracoes";
 
 /**
  * Cobrança e atendimento ao aluno ficam **fora** de `gestor_de_vendas` e de
@@ -33,7 +40,8 @@ export type AreaDaAplicacao =
  * a leitura dela é da operação inteira.
  */
 const ACESSO_POR_PERFIL: Record<PerfilDeAcesso, readonly AreaDaAplicacao[]> = {
-  diretor: ["funil", "cobranca", "atendimento", "conversas", "marketing", "qualidade"],
+  // O painel de TV é leitura executiva das três áreas — cabe a quem enxerga as três.
+  diretor: ["funil", "cobranca", "atendimento", "conversas", "tv", "marketing", "qualidade"],
   gestor_de_vendas: ["funil", "conversas", "qualidade"],
   gestor_de_marketing: ["funil", "conversas", "marketing"],
   administrador: [
@@ -41,6 +49,7 @@ const ACESSO_POR_PERFIL: Record<PerfilDeAcesso, readonly AreaDaAplicacao[]> = {
     "cobranca",
     "atendimento",
     "conversas",
+    "tv",
     "marketing",
     "qualidade",
     "configuracoes",
